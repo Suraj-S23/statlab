@@ -1,3 +1,9 @@
+/**
+ * DataPreview — displays a summary of the uploaded dataset.
+ * Shows column type tags, missing value warnings, and a scrollable
+ * preview of the first 5 rows.
+ */
+
 import type { UploadResponse } from "../types"
 
 interface Props {
@@ -8,6 +14,8 @@ interface Props {
 export default function DataPreview({ data, onReset }: Props) {
   return (
     <div className="mt-8">
+
+      {/* File summary header */}
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-xl font-semibold text-white">{data.filename}</h2>
@@ -21,7 +29,7 @@ export default function DataPreview({ data, onReset }: Props) {
         </button>
       </div>
 
-      {/* Column tags */}
+      {/* Column type tags — blue for numeric, purple for categorical */}
       <div className="flex gap-2 flex-wrap mb-6">
         {data.columns.map((col) => (
           <span
@@ -32,6 +40,7 @@ export default function DataPreview({ data, onReset }: Props) {
                 : "bg-purple-900 text-purple-300"}`}
           >
             {col.name} · {col.type}
+            {/* Warn if column has missing values */}
             {col.missing > 0 && (
               <span className="ml-1 text-yellow-400">· {col.missing} missing</span>
             )}
@@ -39,7 +48,7 @@ export default function DataPreview({ data, onReset }: Props) {
         ))}
       </div>
 
-      {/* Preview table */}
+      {/* Scrollable data preview table */}
       <div className="overflow-x-auto rounded-xl border border-gray-800">
         <table className="w-full text-sm text-left">
           <thead className="bg-gray-900 text-gray-400 uppercase text-xs">

@@ -1,3 +1,8 @@
+/**
+ * UploadZone — drag-and-drop / click-to-browse CSV upload component.
+ * Calls the upload API and passes the parsed response up to the parent.
+ */
+
 import { useState, useRef } from "react"
 import { uploadCSV } from "../services/api"
 import type { UploadResponse } from "../types"
@@ -12,6 +17,7 @@ export default function UploadZone({ onUpload }: Props) {
   const [error, setError] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
 
+  /** Handle a file selected via drag-and-drop or file picker. */
   const handleFile = async (file: File) => {
     setLoading(true)
     setError("")
@@ -19,7 +25,7 @@ export default function UploadZone({ onUpload }: Props) {
       const data = await uploadCSV(file)
       onUpload(data)
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Upload Failure")
+      setError(e instanceof Error ? e.message : "Upload failed")
     } finally {
       setLoading(false)
     }
@@ -39,6 +45,7 @@ export default function UploadZone({ onUpload }: Props) {
       className={`border-2 border-dashed rounded-xl p-16 text-center cursor-pointer transition-all
         ${dragging ? "border-blue-500 bg-blue-950" : "border-gray-600 hover:border-blue-400 bg-gray-900"}`}
     >
+      {/* Hidden file input — triggered programmatically */}
       <input
         ref={inputRef}
         type="file"
@@ -49,6 +56,7 @@ export default function UploadZone({ onUpload }: Props) {
           if (file) handleFile(file)
         }}
       />
+
       {loading ? (
         <p className="text-blue-400 text-lg">Parsing your data...</p>
       ) : (
@@ -57,6 +65,7 @@ export default function UploadZone({ onUpload }: Props) {
           <p className="text-gray-500 mt-2 text-sm">or click to browse</p>
         </>
       )}
+
       {error && <p className="text-red-400 mt-4 text-sm">{error}</p>}
     </div>
   )
