@@ -11,7 +11,7 @@ function App() {
 
   return (
     <div>
-      <h1>StatLab</h1>
+      <h1 className="text-4xl font-bold text-blue-500">StatLab</h1>
       <p>Backend says: {message}</p>
     </div>
   )
