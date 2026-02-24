@@ -31,6 +31,7 @@ import {
   runDescriptive, runTwoGroup, runAnova, runCorrelation,
   runRegression, runChiSquare, runDoseResponse, runKaplanMeier,
 } from "./services/api"
+import ExportMenu from "./components/ExportMenu"
 import type {
   UploadResponse,
   DescriptiveResults as DescResults,
@@ -321,6 +322,75 @@ export default function App() {
   const handleReset = () => { setData(null); setSelectedTest(null); setResults(null); setError("") }
   const handleBackToSuggestions = () => { setSelectedTest(null); setResults(null); setError("") }
 
+
+  const getExportProps = (): { filename: string; pdfTitle: string; csvData: Record<string, unknown>[] } => {
+    if (!results) return { filename: "labrat-export", pdfTitle: "Export", csvData: [] }
+    switch (results.type) {
+      case "descriptive": {
+        const rows = Object.entries(results.data).map(([col, s]) => ({
+          column: col, count: s.count, mean: s.mean, median: s.median, std: s.std,
+          min: s.min, max: s.max, q1: s.q1, q3: s.q3, iqr: s.iqr,
+          skewness: s.skewness, kurtosis: s.kurtosis, outliers: s.outliers,
+        }))
+        return { filename: "descriptive-stats", pdfTitle: "Descriptive Statistics", csvData: rows }
+      }
+      case "two-group": {
+        const d = results.data
+        const rows = Object.entries(d.groups).map(([g, s]) => ({
+          group: g, n: s.n, mean: s.mean, median: s.median, std: s.std, normality: s.normality,
+        }))
+        rows.push({ group: "---", n: 0, mean: 0, median: 0, std: 0, normality: "" })
+        rows.push({ group: "t-test p", n: 0, mean: 0, median: 0, std: 0, normality: d.t_test.p_value } as never)
+        rows.push({ group: "Mann-Whitney p", n: 0, mean: 0, median: 0, std: 0, normality: d.mann_whitney.p_value } as never)
+        return { filename: "two-group-comparison", pdfTitle: "Two-Group Comparison", csvData: rows }
+      }
+      case "anova": {
+        const d = results.data
+        const rows = Object.entries(d.groups).map(([g, s]) => ({ group: g, n: s.n, mean: s.mean, std: s.std }))
+        return { filename: "anova-results", pdfTitle: "One-Way ANOVA", csvData: rows }
+      }
+      case "correlation": {
+        const d = results.data
+        return {
+          filename: "correlation-results", pdfTitle: "Correlation Analysis",
+          csvData: [
+            { test: "Pearson r", coefficient: d.pearson.r, p_value: d.pearson.p_value, significant: d.pearson.significant },
+            { test: "Spearman ρ", coefficient: d.spearman.rho, p_value: d.spearman.p_value, significant: d.spearman.significant },
+          ]
+        }
+      }
+      case "regression": {
+        const d = results.data
+        return {
+          filename: "regression-results", pdfTitle: "Linear Regression",
+          csvData: [{ predictor: d.predictor, outcome: d.outcome, slope: d.slope, intercept: d.intercept, r_squared: d.r_squared, p_value: d.p_value, significant: d.significant }]
+        }
+      }
+      case "chi-square": {
+        const d = results.data
+        return {
+          filename: "chi-square-results", pdfTitle: "Chi-Square / Fisher's Exact",
+          csvData: [
+            { test: "Chi-Square", statistic: d.chi_square.statistic, dof: d.chi_square.dof, p_value: d.chi_square.p_value, significant: d.chi_square.significant },
+            ...(d.fisher ? [{ test: "Fisher's Exact", statistic: d.fisher.odds_ratio, dof: "", p_value: d.fisher.p_value, significant: d.fisher.significant }] : []),
+          ]
+        }
+      }
+      case "dose-response": {
+        const d = results.data
+        return {
+          filename: "dose-response-ic50", pdfTitle: "Dose-Response / IC50",
+          csvData: [{ ic50: d.ic50, hill_slope: d.hill_slope, bottom: d.bottom, top: d.top, r_squared: d.r_squared, n: d.n }]
+        }
+      }
+      case "kaplan-meier": {
+        const d = results.data
+        const rows = d.curve ? d.curve.map(p => ({ time: p.time, survival: p.survival })) : []
+        return { filename: "kaplan-meier-survival", pdfTitle: "Kaplan-Meier Survival Analysis", csvData: rows }
+      }
+    }
+  }
+
   const renderResults = () => {
     if (!results) return null
     const props = { onBack: handleBackToSuggestions }
@@ -395,13 +465,13 @@ export default function App() {
   const s: Record<string, React.CSSProperties> = {
     root: { minHeight: "100vh", background: "var(--bg)", color: "var(--text)", fontFamily: "var(--font-sans)" },
     nav: { position: "sticky", top: 0, zIndex: 50, background: "var(--nav-bg)", backdropFilter: "blur(12px)", borderBottom: "1px solid var(--border)" },
-    navInner: { maxWidth: 1400, margin: "0 auto", padding: "0 32px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between" },
+    navInner: { maxWidth: 1100, margin: "0 auto", padding: "0 28px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between" },
     logo: { display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", padding: 0 },
     logoBox: { width: 28, height: 28, borderRadius: 8, background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center" },
     logoText: { color: "var(--text)", fontWeight: 700, fontSize: 14, fontFamily: "var(--font-sans)" },
-    main: { maxWidth: 1400, margin: "0 auto", padding: "0 32px 80px" },
+    main: { maxWidth: 1100, margin: "0 auto", padding: "0 28px 80px" },
     footer: { borderTop: "1px solid var(--border)", marginTop: 80 },
-    footerInner: { maxWidth: 1400, margin: "0 auto", padding: "0 32px", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" },
+    footerInner: { maxWidth: 1100, margin: "0 auto", padding: "0 28px", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" },
   }
 
   return (
@@ -531,7 +601,16 @@ export default function App() {
                   key={results ? "results" : (selectedTest ?? "suggestions")}
                   variants={pageVariants} initial="initial" animate="animate" exit="exit"
                   transition={{ duration: 0.2 }}>
-                  {results ? renderResults() : renderSelector()}
+                  {results ? (
+                    <>
+                      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+                        <ExportMenu targetId="results-capture" {...getExportProps()} />
+                      </div>
+                      <div id="results-capture">
+                        {renderResults()}
+                      </div>
+                    </>
+                  ) : renderSelector()}
                 </motion.div>
               </AnimatePresence>
             </motion.div>
