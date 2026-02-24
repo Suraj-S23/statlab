@@ -164,3 +164,8 @@ export interface KaplanMeierResults {
   }>
   interpretation: string
 }
+export interface ContingencyTable {
+  row_labels: string[]
+  col_labels: string[]
+  values: number[][]
+}
