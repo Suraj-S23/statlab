@@ -5,7 +5,7 @@ Initialises FastAPI, configures CORS, and registers all routers.
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import upload, suggest
+from routers import upload, suggest, analysis
 
 app = FastAPI(
     title="StatLab API",
@@ -25,6 +25,7 @@ app.add_middleware(
 # Register routers with /api prefix
 app.include_router(upload.router, prefix="/api")
 app.include_router(suggest.router, prefix="/api")
+app.include_router(analysis.router, prefix="/api")
 
 
 @app.get("/")

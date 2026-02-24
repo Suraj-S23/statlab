@@ -4,7 +4,7 @@
  * the base URL for production later.
  */
 
-import type { UploadResponse, Suggestion, Column } from "../types"
+import type { UploadResponse, Suggestion, Column, DescriptiveResults } from "../types"
 
 const BASE_URL = "http://localhost:8000/api"
 
@@ -37,6 +37,28 @@ export async function getSuggestions(columns: Column[]): Promise<Suggestion[]> {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(columns),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.detail)
+  }
+
+  return response.json()
+}
+
+/**
+ * Run descriptive statistics on selected columns.
+ * Sends the full dataset rows and the chosen column names.
+ */
+export async function runDescriptive(
+  data: Record<string, string | number>[],
+  columns: string[]
+): Promise<DescriptiveResults> {
+  const response = await fetch(`${BASE_URL}/analysis/descriptive`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data, columns }),
   })
 
   if (!response.ok) {

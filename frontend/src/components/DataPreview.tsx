@@ -37,6 +37,8 @@ export default function DataPreview({ data, onReset }: Props) {
             className={`px-3 py-1 rounded-full text-xs font-medium
               ${col.type === "numeric"
                 ? "bg-blue-900 text-blue-300"
+                : col.type === "boolean"
+                ? "bg-green-900 text-green-300"
                 : "bg-purple-900 text-purple-300"}`}
           >
             {col.name} · {col.type}

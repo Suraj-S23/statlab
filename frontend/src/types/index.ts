@@ -6,7 +6,7 @@
 /** Metadata for a single column parsed from the uploaded CSV. */
 export interface Column {
   name: string
-  type: "numeric" | "categorical"
+  type: "numeric" | "categorical" | "boolean"
   missing: number
 }
 
@@ -16,6 +16,7 @@ export interface UploadResponse {
   rows: number
   columns: Column[]
   preview: Record<string, string | number>[]
+  data: Record<string, string | number>[] 
 }
 
 /** A single statistical test suggestion returned by /api/suggest. */
@@ -25,3 +26,22 @@ export interface Suggestion {
   columns_needed: string
   tier: number
 }
+
+/** Descriptive statistics for a single column. */
+export interface ColumnStats {
+  count: number
+  mean: number
+  median: number
+  std: number
+  min: number
+  max: number
+  q1: number
+  q3: number
+  iqr: number
+  skewness: number
+  kurtosis: number
+  outliers: number
+}
+
+/** Full descriptive statistics result — keyed by column name. */
+export type DescriptiveResults = Record<string, ColumnStats>
