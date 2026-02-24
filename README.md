@@ -10,7 +10,7 @@ Upload a CSV, pick a test, get results.
 
 ## The problem
 
-Running standard statistical tests usually means setting up Python or R, installing packages, writing code, and debugging environment issues before you even look at your data. For a student who needs to compare two groups or fit a dose-response curve, that setup cost is often not worth it.
+Running standard statistical tests usually means setting up Python or R, installing packages, writing code, and debugging environment issues before you even look at your data. For a researcher who needs to compare two groups or fit a dose-response curve, that setup cost is often not worth it.
 
 LabRat is a web app that removes that friction. Drop in a CSV, select your columns, and get back results with charts and interpretation text. No installation, no account.
 
@@ -68,10 +68,6 @@ git clone https://github.com/Suraj-S23/LabRat
 cd LabRat
 docker compose up --build
 ```
-
-Open [http://localhost:80](http://localhost:80).
-
----
 
 ## Project structure
 
