@@ -13,8 +13,9 @@ import type {
   DoseResponseResults, KaplanMeierResults,
 } from "../types"
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? "/api"
-
+const BASE_URL = import.meta.env.VITE_API_URL 
+  ?? "https://labrat-backend-production.up.railway.app/api"
+  
 async function post<T>(endpoint: string, body: object): Promise<T> {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     method: "POST",
