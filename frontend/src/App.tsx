@@ -471,7 +471,7 @@ export default function App() {
         <div style={s.navInner}>
           <button style={s.logo} onClick={handleReset}>
             <div style={s.logoBox}>
-              <span style={{ color: isDark ? "#000" : "#fff", fontWeight: 800, fontSize: 12, fontFamily: "var(--font-mono)" }}>LR</span>
+              <img src="/LabRat_Logo.png" alt="LabRat" style={{ height: 32, width: "auto" }} />
             </div>
             <span style={s.logoText}>LabRat</span>
           </button>
