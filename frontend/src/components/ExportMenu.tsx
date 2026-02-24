@@ -1,19 +1,10 @@
-/**
- * ExportMenu — dropdown menu for exporting analysis results.
- * Supports PNG screenshot, PDF report, and CSV data download.
- */
-
 import { useState, useRef, useEffect } from "react"
 import { useExport } from "../hooks/useExport"
 
 interface Props {
-  /** ID of the DOM element to capture for PNG/PDF export */
   targetId: string
-  /** Base filename (without extension) for all exports */
   filename: string
-  /** Title shown in the PDF header */
   pdfTitle: string
-  /** CSV data rows to export */
   csvData: Record<string, unknown>[] | Record<string, unknown>
 }
 
@@ -23,12 +14,9 @@ export default function ExportMenu({ targetId, filename, pdfTitle, csvData }: Pr
   const ref = useRef<HTMLDivElement>(null)
   const { exportPNG, exportPDF, exportCSV } = useExport()
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
     document.addEventListener("mousedown", handler)
     return () => document.removeEventListener("mousedown", handler)
@@ -47,26 +35,41 @@ export default function ExportMenu({ targetId, filename, pdfTitle, csvData }: Pr
   }
 
   return (
-    <div className="relative" ref={ref}>
+    <div ref={ref} style={{ position: "relative" }}>
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setOpen(o => !o)}
         disabled={!!exporting}
-        className="text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 px-4 py-2 rounded-lg transition-all disabled:opacity-50"
+        style={{
+          fontSize: 12, color: "var(--text-muted)", background: "none",
+          border: "1px solid var(--border)", borderRadius: 8,
+          padding: "5px 14px", cursor: "pointer", transition: "all 0.15s",
+          opacity: exporting ? 0.5 : 1,
+        }}
       >
         {exporting ? `Exporting ${exporting.toUpperCase()}...` : "↓ Export"}
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-44 bg-gray-900 border border-gray-700 rounded-xl shadow-xl z-10 overflow-hidden">
+        <div style={{
+          position: "absolute", right: 0, top: "calc(100% + 6px)",
+          width: 172, background: "var(--surface)",
+          border: "1px solid var(--border)", borderRadius: 12,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.4)", zIndex: 50, overflow: "hidden",
+        }}>
           {[
-            { type: "png" as const, label: "📷 PNG screenshot" },
-            { type: "pdf" as const, label: "📄 PDF report" },
-            { type: "csv" as const, label: "📊 CSV data" },
+            { type: "png" as const, label: "📷  PNG screenshot" },
+            { type: "pdf" as const, label: "📄  PDF report" },
+            { type: "csv" as const, label: "📊  CSV data" },
           ].map(({ type, label }) => (
-            <button
-              key={type}
-              onClick={() => handle(type)}
-              className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+            <button key={type} onClick={() => handle(type)} style={{
+              width: "100%", textAlign: "left", padding: "10px 14px",
+              fontSize: 12, color: "var(--text)", background: "none",
+              border: "none", cursor: "pointer",
+              borderBottom: type !== "csv" ? "1px solid var(--border)" : "none",
+              transition: "background 0.1s",
+            }}
+              onMouseEnter={e => (e.currentTarget.style.background = "var(--bg-alt)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "none")}
             >
               {label}
             </button>
