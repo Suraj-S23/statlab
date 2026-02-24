@@ -35,7 +35,7 @@ export default function DoseResponseResults({ results, onBack }: Props) {
         ))}
       </div>
       {results.curve_x?.length > 0 && (
-        <DoseResponseChart curveX={results.curve_x} curveY={results.curve_y} dataX={results.data_x} dataY={results.data_y} xLabel={results.concentration_col} yLabel={results.response_col} />
+        <div id="chart-export-zone"><DoseResponseChart curveX={results.curve_x} curveY={results.curve_y} dataX={results.data_x} dataY={results.data_y} xLabel={results.concentration_col} yLabel={results.response_col} /></div>
       )}
     </div>
   )

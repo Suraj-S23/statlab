@@ -1,164 +1,124 @@
-/**
- * useExport — provides PNG and PDF export functionality for analysis results.
- * PNG captures the target element via html2canvas.
- * PDF embeds the PNG into a jsPDF document with a title and timestamp.
- */
-
 import html2canvas from "html2canvas"
 import jsPDF from "jspdf"
 
-export function useExport() {
-  /**
-   * Capture a DOM element as a PNG and trigger a download.
-   * @param elementId - the id of the element to capture
-   * @param filename - download filename without extension
-   */
-  const exportPNG = async (elementId: string, filename: string) => {
-    const element = document.getElementById(elementId)
-    if (!element) {
-      console.error(`Export failed: element #${elementId} not found`)
-      return
-    }
+// Resolve CSS variables to safe hex values for html2canvas
+function fixOklch(el: HTMLElement) {
+  const all = el.querySelectorAll("*")
+  all.forEach((node) => {
+    const e = node as HTMLElement
+    const s = window.getComputedStyle(e)
+    if (s.backgroundColor.includes("oklch")) e.style.backgroundColor = "#030712"
+    if (s.color.includes("oklch")) e.style.color = "#d1d5db"
+    if (s.borderColor.includes("oklch")) e.style.borderColor = "#374151"
+  })
+}
 
+export function useExport() {
+  // Capture the chart zone only as PNG
+  const exportPNG = async (filename: string) => {
+    const element = document.getElementById("chart-export-zone")
+    if (!element) { console.error("chart-export-zone not found"); return }
     try {
       const canvas = await html2canvas(element, {
         backgroundColor: "#030712",
-        scale: 2,
+        scale: 3,
         useCORS: true,
-        onclone: (_doc, el) => {
-          // html2canvas does not support oklch — walk all elements and
-          // replace any oklch color/background with safe hex fallbacks
-          const all = el.querySelectorAll("*")
-          const fallbacks: Record<string, string> = {
-            // gray scale
-            "background": "#030712",
-            "color": "#d1d5db",
-          }
-          all.forEach((node) => {
-            const el = node as HTMLElement
-            const style = window.getComputedStyle(el)
-            const bg = style.backgroundColor
-            const fg = style.color
-            const border = style.borderColor
-
-            if (bg.includes("oklch")) el.style.backgroundColor = fallbacks["background"]
-            if (fg.includes("oklch")) el.style.color = fallbacks["color"]
-            if (border.includes("oklch")) el.style.borderColor = "#374151"
-          })
-        },
+        onclone: (_doc, el) => fixOklch(el),
       })
-
       const link = document.createElement("a")
       link.download = `${filename}.png`
       link.href = canvas.toDataURL("image/png")
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-    } catch (e) {
-      console.error("PNG export error:", e)
-    }
+    } catch (e) { console.error("PNG export error:", e) }
   }
-  /**
-   * Capture a DOM element and embed it in a PDF with a title header.
-   * @param elementId - the id of the element to capture
-   * @param filename - download filename without extension
-   * @param title - heading shown at the top of the PDF
-   */
-  const exportPDF = async (elementId: string, filename: string, title: string) => {
-    const element = document.getElementById(elementId)
-    if (!element) return
 
-    const canvas = await html2canvas(element, {
-        backgroundColor: "#030712",
-        scale: 2,
+  // Publication-quality PDF: white background, chart + title, clean typography
+  const exportPublicationPDF = async (filename: string, title: string, subtitle: string) => {
+    const element = document.getElementById("chart-export-zone")
+    if (!element) { console.error("chart-export-zone not found"); return }
+    try {
+      const canvas = await html2canvas(element, {
+        backgroundColor: "#ffffff",
+        scale: 3,
         useCORS: true,
         onclone: (_doc, el) => {
-          const all = el.querySelectorAll("*")
-          all.forEach((node) => {
-            const el = node as HTMLElement
-            const style = window.getComputedStyle(el)
-            if (style.backgroundColor.includes("oklch")) el.style.backgroundColor = "#030712"
-            if (style.color.includes("oklch")) el.style.color = "#d1d5db"
-            if (style.borderColor.includes("oklch")) el.style.borderColor = "#374151"
+          // Force white background and dark text for publication
+          el.style.backgroundColor = "#ffffff"
+          el.style.padding = "16px"
+          const allEls = el.querySelectorAll("*")
+          allEls.forEach((node) => {
+            const e = node as HTMLElement
+            const s = window.getComputedStyle(e)
+            if (s.backgroundColor.includes("oklch") || s.backgroundColor.includes("rgb(3") || s.backgroundColor.includes("rgb(17"))
+              e.style.backgroundColor = "#ffffff"
+            if (s.color.includes("oklch")) e.style.color = "#111827"
+            if (s.borderColor.includes("oklch")) e.style.borderColor = "#d1d5db"
+            // Make chart lines/text dark
+            if (e.tagName === "text") e.style.fill = "#374151"
           })
         },
       })
 
-    const imgData = canvas.toDataURL("image/png")
-    const pdf = new jsPDF({
-      orientation: "landscape",
-      unit: "mm",
-      format: "a4",
-    })
+      const imgData = canvas.toDataURL("image/png")
+      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" })
+      const pageW = pdf.internal.pageSize.getWidth()
+      const pageH = pdf.internal.pageSize.getHeight()
+      const margin = 16
 
-    const pageWidth = pdf.internal.pageSize.getWidth()
-    const pageHeight = pdf.internal.pageSize.getHeight()
-    const margin = 12
+      // White background
+      pdf.setFillColor(255, 255, 255)
+      pdf.rect(0, 0, pageW, pageH, "F")
 
-    // Header
-    pdf.setFillColor(3, 7, 18) // gray-950
-    pdf.rect(0, 0, pageWidth, pageHeight, "F")
-    pdf.setTextColor(96, 165, 250) // blue-400
-    pdf.setFontSize(16)
-    pdf.setFont("helvetica", "bold")
-    pdf.text("LabRat", margin, margin + 4)
+      // Title
+      pdf.setTextColor(17, 24, 39)
+      pdf.setFontSize(14)
+      pdf.setFont("helvetica", "bold")
+      pdf.text(title, margin, margin + 6)
 
-    pdf.setTextColor(156, 163, 175) // gray-400
-    pdf.setFontSize(10)
-    pdf.setFont("helvetica", "normal")
-    pdf.text(title, margin, margin + 10)
-    pdf.text(
-      `Exported ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`,
-      pageWidth - margin,
-      margin + 10,
-      { align: "right" }
-    )
+      // Subtitle
+      pdf.setTextColor(107, 114, 128)
+      pdf.setFontSize(9)
+      pdf.setFont("helvetica", "normal")
+      pdf.text(subtitle, margin, margin + 12)
 
-    // Divider
-    pdf.setDrawColor(55, 65, 81) // gray-700
-    pdf.line(margin, margin + 14, pageWidth - margin, margin + 14)
+      // Right: LabRat + date
+      pdf.setTextColor(156, 163, 175)
+      pdf.setFontSize(8)
+      pdf.text(
+        `LabRat · ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`,
+        pageW - margin, margin + 6, { align: "right" }
+      )
 
-    // Image — scale to fit page width with top margin
-    const imgWidth = pageWidth - margin * 2
-    const imgHeight = (canvas.height / canvas.width) * imgWidth
-    const maxImgHeight = pageHeight - margin * 2 - 20
+      // Thin divider
+      pdf.setDrawColor(229, 231, 235)
+      pdf.line(margin, margin + 16, pageW - margin, margin + 16)
 
-    pdf.addImage(
-      imgData,
-      "PNG",
-      margin,
-      margin + 18,
-      imgWidth,
-      Math.min(imgHeight, maxImgHeight)
-    )
+      // Chart image
+      const imgW = pageW - margin * 2
+      const imgH = Math.min((canvas.height / canvas.width) * imgW, pageH - margin * 2 - 22)
+      pdf.addImage(imgData, "PNG", margin, margin + 20, imgW, imgH)
 
-    pdf.save(`${filename}.pdf`)
+      pdf.save(`${filename}.pdf`)
+    } catch (e) { console.error("PDF export error:", e) }
   }
 
-  /**
-   * Convert a flat object or array of objects to CSV and trigger download.
-   * @param data - array of row objects or a single flat object
-   * @param filename - download filename without extension
-   */
   const exportCSV = (data: Record<string, unknown>[] | Record<string, unknown>, filename: string) => {
     const rows = Array.isArray(data) ? data : [data]
     if (rows.length === 0) return
-
     const headers = Object.keys(rows[0])
     const csv = [
       headers.join(","),
-      ...rows.map((row) =>
-        headers.map((h) => {
+      ...rows.map(row =>
+        headers.map(h => {
           const val = row[h]
           const str = val === null || val === undefined ? "" : String(val)
-          // Wrap in quotes if contains comma, quote, or newline
           return str.includes(",") || str.includes('"') || str.includes("\n")
-            ? `"${str.replace(/"/g, '""')}"`
-            : str
+            ? `"${str.replace(/"/g, '""')}"` : str
         }).join(",")
       ),
     ].join("\n")
-
     const blob = new Blob([csv], { type: "text/csv" })
     const link = document.createElement("a")
     link.download = `${filename}.csv`
@@ -167,5 +127,5 @@ export function useExport() {
     URL.revokeObjectURL(link.href)
   }
 
-  return { exportPNG, exportPDF, exportCSV }
+  return { exportPNG, exportPublicationPDF, exportCSV }
 }

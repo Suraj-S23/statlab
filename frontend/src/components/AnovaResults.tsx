@@ -27,7 +27,7 @@ export default function AnovaResults({ results, onBack }: Props) {
       <div style={{ padding: "12px 16px", borderRadius: 12, border: `1px solid ${significant ? "var(--accent)" : "var(--border)"}`, background: significant ? "var(--accent-dim)" : "var(--surface)", marginBottom: 16 }}>
         <p style={{ color: "var(--text)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>{results.interpretation}</p>
       </div>
-      <GroupBarChart groups={chartGroups} valueLabel={results.value_column} />
+      <div id="chart-export-zone"><GroupBarChart groups={chartGroups} valueLabel={results.value_column} /></div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 8, marginBottom: 16, marginTop: 16 }}>
         {groupNames.map(group => {
           const g = results.groups[group]

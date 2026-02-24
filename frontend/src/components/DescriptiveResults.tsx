@@ -23,8 +23,6 @@ export default function DescriptiveResults({ results, onBack }: Props) {
     { key: "outliers", label: t("descriptive.outliers") },
   ]
 
-  const histCount = columns.filter(col => results[col].histogram?.length > 0).length
-
   return (
     <div style={{ marginTop: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
@@ -55,10 +53,10 @@ export default function DescriptiveResults({ results, onBack }: Props) {
           </tbody>
         </table>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: histCount === 1 ? "1fr" : "repeat(auto-fill, minmax(500px, 1fr))", gap: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
         {columns.map(col => (
           results[col].histogram?.length > 0 && (
-            <div key={col} style={{ padding: "14px 16px 8px 16px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", overflow: "visible" }}>
+            <div key={col} style={{ padding: "14px 16px 4px 16px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", overflow: "visible", paddingRight: 32 }}>
               <Histogram data={results[col].histogram} title={`${t("descriptive.distribution")} — ${col}`} />
             </div>
           )

@@ -36,7 +36,7 @@ export default function RegressionResults({ results, onBack }: Props) {
           </div>
         ))}
       </div>
-      {results.scatter?.length > 0 && <ScatterPlot data={results.scatter} xLabel={results.predictor} yLabel={results.outcome} line={results.line} />}
+      {results.scatter?.length > 0 && <div id="chart-export-zone"><ScatterPlot data={results.scatter} xLabel={results.predictor} yLabel={results.outcome} line={results.line} /></div>}
     </div>
   )
 }

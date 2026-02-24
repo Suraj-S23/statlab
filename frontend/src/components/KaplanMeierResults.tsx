@@ -19,7 +19,7 @@ export default function KaplanMeierResults({ results, onBack }: Props) {
       <div style={{ padding: "12px 16px", borderRadius: 12, border: "1px solid var(--accent)", background: "var(--accent-dim)", marginBottom: 16 }}>
         <p style={{ color: "var(--text)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>{results.interpretation}</p>
       </div>
-      <SurvivalCurve curve={results.curve} groups={results.groups} />
+      <div id="chart-export-zone"><SurvivalCurve curve={results.curve} groups={results.groups} /></div>
       {!hasGroups && (
         <div style={{ padding: "14px 18px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", display: "inline-block", marginTop: 16 }}>
           <p style={{ color: "var(--text-muted)", fontSize: 11, margin: "0 0 4px" }}>{t("kaplanMeier.medianSurvival")}</p>

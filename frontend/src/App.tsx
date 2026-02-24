@@ -27,11 +27,11 @@ import RegressionResults from "./components/RegressionResults"
 import ChiSquareResults from "./components/ChiSquareResults"
 import DoseResponseResults from "./components/DoseResponseResults"
 import KaplanMeierResults from "./components/KaplanMeierResults"
+import ExportMenu from "./components/ExportMenu"
 import {
   runDescriptive, runTwoGroup, runAnova, runCorrelation,
   runRegression, runChiSquare, runDoseResponse, runKaplanMeier,
 } from "./services/api"
-import ExportMenu from "./components/ExportMenu"
 import type {
   UploadResponse,
   DescriptiveResults as DescResults,
@@ -322,75 +322,6 @@ export default function App() {
   const handleReset = () => { setData(null); setSelectedTest(null); setResults(null); setError("") }
   const handleBackToSuggestions = () => { setSelectedTest(null); setResults(null); setError("") }
 
-
-  const getExportProps = (): { filename: string; pdfTitle: string; csvData: Record<string, unknown>[] } => {
-    if (!results) return { filename: "labrat-export", pdfTitle: "Export", csvData: [] }
-    switch (results.type) {
-      case "descriptive": {
-        const rows = Object.entries(results.data).map(([col, s]) => ({
-          column: col, count: s.count, mean: s.mean, median: s.median, std: s.std,
-          min: s.min, max: s.max, q1: s.q1, q3: s.q3, iqr: s.iqr,
-          skewness: s.skewness, kurtosis: s.kurtosis, outliers: s.outliers,
-        }))
-        return { filename: "descriptive-stats", pdfTitle: "Descriptive Statistics", csvData: rows }
-      }
-      case "two-group": {
-        const d = results.data
-        const rows = Object.entries(d.groups).map(([g, s]) => ({
-          group: g, n: s.n, mean: s.mean, median: s.median, std: s.std, normality: s.normality,
-        }))
-        rows.push({ group: "---", n: 0, mean: 0, median: 0, std: 0, normality: "" })
-        rows.push({ group: "t-test p", n: 0, mean: 0, median: 0, std: 0, normality: d.t_test.p_value } as never)
-        rows.push({ group: "Mann-Whitney p", n: 0, mean: 0, median: 0, std: 0, normality: d.mann_whitney.p_value } as never)
-        return { filename: "two-group-comparison", pdfTitle: "Two-Group Comparison", csvData: rows }
-      }
-      case "anova": {
-        const d = results.data
-        const rows = Object.entries(d.groups).map(([g, s]) => ({ group: g, n: s.n, mean: s.mean, std: s.std }))
-        return { filename: "anova-results", pdfTitle: "One-Way ANOVA", csvData: rows }
-      }
-      case "correlation": {
-        const d = results.data
-        return {
-          filename: "correlation-results", pdfTitle: "Correlation Analysis",
-          csvData: [
-            { test: "Pearson r", coefficient: d.pearson.r, p_value: d.pearson.p_value, significant: d.pearson.significant },
-            { test: "Spearman ρ", coefficient: d.spearman.rho, p_value: d.spearman.p_value, significant: d.spearman.significant },
-          ]
-        }
-      }
-      case "regression": {
-        const d = results.data
-        return {
-          filename: "regression-results", pdfTitle: "Linear Regression",
-          csvData: [{ predictor: d.predictor, outcome: d.outcome, slope: d.slope, intercept: d.intercept, r_squared: d.r_squared, p_value: d.p_value, significant: d.significant }]
-        }
-      }
-      case "chi-square": {
-        const d = results.data
-        return {
-          filename: "chi-square-results", pdfTitle: "Chi-Square / Fisher's Exact",
-          csvData: [
-            { test: "Chi-Square", statistic: d.chi_square.statistic, dof: d.chi_square.dof, p_value: d.chi_square.p_value, significant: d.chi_square.significant },
-            ...(d.fisher ? [{ test: "Fisher's Exact", statistic: d.fisher.odds_ratio, dof: "", p_value: d.fisher.p_value, significant: d.fisher.significant }] : []),
-          ]
-        }
-      }
-      case "dose-response": {
-        const d = results.data
-        return {
-          filename: "dose-response-ic50", pdfTitle: "Dose-Response / IC50",
-          csvData: [{ ic50: d.ic50, hill_slope: d.hill_slope, bottom: d.bottom, top: d.top, r_squared: d.r_squared, n: d.n }]
-        }
-      }
-      case "kaplan-meier": {
-        const d = results.data
-        const rows = d.curve ? d.curve.map(p => ({ time: p.time, survival: p.survival })) : []
-        return { filename: "kaplan-meier-survival", pdfTitle: "Kaplan-Meier Survival Analysis", csvData: rows }
-      }
-    }
-  }
-
   const renderResults = () => {
     if (!results) return null
     const props = { onBack: handleBackToSuggestions }
@@ -604,11 +535,15 @@ export default function App() {
                   {results ? (
                     <>
                       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-                        <ExportMenu targetId="results-capture" {...getExportProps()} />
+                        <ExportMenu
+                          filename={results.type}
+                          pdfTitle={results.type.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+                          pdfSubtitle={data?.filename ?? ""}
+                          csvData={results.data as unknown as Record<string, unknown>}
+                          hasChart={results.type !== "chi-square"}
+                        />
                       </div>
-                      <div id="results-capture">
-                        {renderResults()}
-                      </div>
+                      {renderResults()}
                     </>
                   ) : renderSelector()}
                 </motion.div>

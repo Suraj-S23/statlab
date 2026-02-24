@@ -23,7 +23,7 @@ export default function CorrelationResults({ results, onBack }: Props) {
       <div style={{ padding: "12px 16px", borderRadius: 12, border: `1px solid ${results.pearson.significant ? "var(--accent)" : "var(--border)"}`, background: results.pearson.significant ? "var(--accent-dim)" : "var(--surface)", marginBottom: 16 }}>
         <p style={{ color: "var(--text)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>{results.interpretation}</p>
       </div>
-      {results.scatter?.length > 0 && <ScatterPlot data={results.scatter} xLabel={results.col_a} yLabel={results.col_b} />}
+      {results.scatter?.length > 0 && <div id="chart-export-zone"><ScatterPlot data={results.scatter} xLabel={results.col_a} yLabel={results.col_b} /></div>}
       <div style={{ marginTop: 16, overflowX: "auto", borderRadius: 12, border: "1px solid var(--border)" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
           <thead><tr style={{ background: "var(--surface)" }}>
