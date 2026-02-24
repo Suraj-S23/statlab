@@ -1,10 +1,9 @@
 /**
- * KaplanMeierResults — displays Kaplan-Meier survival analysis results
- * including median survival times per group.
- * Chart rendering will be added in the visualisation pass.
+ * KaplanMeierResults — displays Kaplan-Meier survival analysis with step curve chart.
  */
 
 import type { KaplanMeierResults as Results } from "../types"
+import SurvivalCurve from "./charts/SurvivalCurve"
 
 interface Props {
   results: Results
@@ -28,12 +27,14 @@ export default function KaplanMeierResults({ results, onBack }: Props) {
         </button>
       </div>
 
-      {/* Interpretation */}
       <div className="p-4 rounded-xl border border-blue-800 bg-blue-950 mb-6">
         <p className="text-sm font-medium text-white">{results.interpretation}</p>
       </div>
 
-      {/* Single curve summary */}
+      <div className="p-4 rounded-xl border border-gray-800 bg-gray-900 mb-6">
+        <SurvivalCurve curve={results.curve} groups={results.groups} />
+      </div>
+
       {!hasGroups && (
         <div className="p-4 rounded-xl border border-gray-800 bg-gray-900">
           <p className="text-gray-400 text-sm">Median survival time</p>
@@ -43,7 +44,6 @@ export default function KaplanMeierResults({ results, onBack }: Props) {
         </div>
       )}
 
-      {/* Group summaries */}
       {hasGroups && results.groups && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {Object.entries(results.groups).map(([group, data]) => (
@@ -56,19 +56,13 @@ export default function KaplanMeierResults({ results, onBack }: Props) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Median survival</span>
-                  <span className="text-gray-300">
-                    {data.median_survival ?? "Not reached"}
-                  </span>
+                  <span className="text-gray-300">{data.median_survival ?? "Not reached"}</span>
                 </div>
               </div>
             </div>
           ))}
         </div>
       )}
-
-      <p className="text-gray-600 text-xs mt-6">
-        Chart visualisation coming in the next update.
-      </p>
     </div>
   )
 }

@@ -3,14 +3,12 @@
  * These mirror the Pydantic models defined in the FastAPI backend.
  */
 
-/** Metadata for a single column parsed from the uploaded CSV. */
 export interface Column {
   name: string
   type: "numeric" | "categorical" | "boolean"
   missing: number
 }
 
-/** Response returned by the /api/upload endpoint. */
 export interface UploadResponse {
   session_id: string
   filename: string
@@ -19,7 +17,6 @@ export interface UploadResponse {
   preview: Record<string, string | number>[]
 }
 
-/** A single statistical test suggestion returned by /api/suggest. */
 export interface Suggestion {
   test: string
   reason: string
@@ -27,7 +24,18 @@ export interface Suggestion {
   tier: number
 }
 
-/** Descriptive statistics for a single column. */
+/** A single histogram bin for chart display. */
+export interface HistogramBin {
+  bin_label: string
+  count: number
+}
+
+/** A single {x, y} point for scatter plot display. */
+export interface ScatterPoint {
+  x: number
+  y: number
+}
+
 export interface ColumnStats {
   count: number
   mean: number
@@ -41,12 +49,11 @@ export interface ColumnStats {
   skewness: number
   kurtosis: number
   outliers: number
+  histogram: HistogramBin[]
 }
 
-/** Full descriptive statistics result — keyed by column name. */
 export type DescriptiveResults = Record<string, ColumnStats>
 
-/** Group summary statistics for two-group comparison. */
 export interface GroupSummary {
   n: number
   mean: number
@@ -54,9 +61,9 @@ export interface GroupSummary {
   std: number
   normality_p: number | null
   normality: string
+  points: number[]
 }
 
-/** Result of a two-group comparison (t-test / Mann-Whitney). */
 export interface TwoGroupResults {
   group_column: string
   value_column: string
@@ -67,15 +74,14 @@ export interface TwoGroupResults {
   interpretation: string
 }
 
-/** Per-group summary for ANOVA. */
 export interface AnovaGroupSummary {
   n: number
   mean: number
   median: number
   std: number
+  points: number[]
 }
 
-/** Result of a one-way ANOVA analysis. */
 export interface AnovaResults {
   group_column: string
   value_column: string
@@ -87,7 +93,6 @@ export interface AnovaResults {
   interpretation: string
 }
 
-/** Result of a correlation analysis. */
 export interface CorrelationResults {
   col_a: string
   col_b: string
@@ -95,9 +100,9 @@ export interface CorrelationResults {
   pearson: { r: number; p_value: string; significant: boolean }
   spearman: { rho: number; p_value: string; significant: boolean }
   interpretation: string
+  scatter: ScatterPoint[]
 }
 
-/** Result of a linear regression analysis. */
 export interface RegressionResults {
   predictor: string
   outcome: string
@@ -110,9 +115,10 @@ export interface RegressionResults {
   std_err: number
   significant: boolean
   interpretation: string
+  scatter: ScatterPoint[]
+  line: ScatterPoint[]
 }
 
-/** Result of a chi-square test. */
 export interface ChiSquareResults {
   col_a: string
   col_b: string
@@ -123,7 +129,6 @@ export interface ChiSquareResults {
   interpretation: string
 }
 
-/** Result of a dose-response curve fit. */
 export interface DoseResponseResults {
   concentration_col: string
   response_col: string
@@ -140,13 +145,11 @@ export interface DoseResponseResults {
   interpretation: string
 }
 
-/** Single point on a Kaplan-Meier survival curve. */
 export interface SurvivalPoint {
   time: number
   survival: number
 }
 
-/** Result of Kaplan-Meier survival analysis. */
 export interface KaplanMeierResults {
   time_col: string
   event_col: string

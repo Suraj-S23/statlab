@@ -64,6 +64,7 @@ def descriptive_statistics(data: List[dict], columns: List[str]) -> dict:
             "skewness": round(float(stats.skew(series)), 4),
             "kurtosis": round(float(stats.kurtosis(series)), 4),
             "outliers": int(len(outliers)),
+            "histogram": compute_histogram_bins(series),  # ← add this line
         }
 
     return results
@@ -168,6 +169,12 @@ def two_group_comparison(data: list[dict], group_col: str, value_col: str) -> di
                 "std": round(float(group_a.std()), 4),
                 "normality_p": norm_a_p,
                 "normality": norm_a_result,
+                "points": [
+                    round(float(v), 4)
+                    for v in group_a.sample(
+                        min(200, len(group_a)), random_state=42
+                    ).values
+                ],  # ← add
             },
             group_b_label: {
                 "n": int(len(group_b)),
@@ -176,6 +183,12 @@ def two_group_comparison(data: list[dict], group_col: str, value_col: str) -> di
                 "std": round(float(group_b.std()), 4),
                 "normality_p": norm_b_p,
                 "normality": norm_b_result,
+                "points": [
+                    round(float(v), 4)
+                    for v in group_b.sample(
+                        min(200, len(group_b)), random_state=42
+                    ).values
+                ],  # ← add
             },
         },
         "t_test": {
@@ -256,6 +269,10 @@ def one_way_anova(data: list[dict], group_col: str, value_col: str) -> dict:
             "mean": round(float(series.mean()), 4),
             "median": round(float(series.median()), 4),
             "std": round(float(series.std()), 4),
+            "points": [
+                round(float(v), 4)
+                for v in series.sample(min(200, len(series)), random_state=42).values
+            ],  # ← add
         }
 
     # Plain-English interpretation
@@ -357,6 +374,7 @@ def correlation(data: list[dict], col_a: str, col_b: str) -> dict:
             "significant": bool(spearman_p < 0.05),
         },
         "interpretation": interpretation,
+        "scatter": sample_scatter(a, b),
     }
 
 
@@ -392,6 +410,9 @@ def linear_regression(data: list[dict], predictor_col: str, outcome_col: str) ->
         f"{'The predictor is statistically significant.' if p_value < 0.05 else 'The predictor is not statistically significant.'} "
         f"R² = {round(float(r_squared), 4)} means {round(float(r_squared) * 100, 1)}% of variance in the outcome is explained by the predictor."
     )
+    # Generate regression line points across x range
+    x_line = np.linspace(float(x_clean.min()), float(x_clean.max()), 100)
+    y_line = slope * x_line + intercept
 
     return {
         "predictor": predictor_col,
@@ -405,6 +426,11 @@ def linear_regression(data: list[dict], predictor_col: str, outcome_col: str) ->
         "std_err": round(float(std_err), 4),
         "significant": bool(p_value < 0.05),
         "interpretation": interpretation,
+        "scatter": sample_scatter(x_clean, y_clean),
+        "line": [
+            {"x": round(float(xv), 4), "y": round(float(yv), 4)}
+            for xv, yv in zip(x_line, y_line)
+        ],
     }
 
 
@@ -645,3 +671,34 @@ def kaplan_meier(
         )
 
     return result
+
+
+def compute_histogram_bins(series: pd.Series, n_bins: int = 20) -> list[dict]:
+    """
+    Compute histogram bin counts for a numeric series.
+    Returns a list of {bin_start, bin_end, bin_label, count} dicts.
+    """
+    counts, edges = np.histogram(series.dropna(), bins=n_bins)
+    bins = []
+    for i in range(len(counts)):
+        bins.append(
+            {
+                "bin_label": f"{round(float(edges[i]), 2)}–{round(float(edges[i + 1]), 2)}",
+                "count": int(counts[i]),
+            }
+        )
+    return bins
+
+
+def sample_scatter(x: pd.Series, y: pd.Series, max_points: int = 500) -> list[dict]:
+    """
+    Sample up to max_points from two aligned series for scatter plot display.
+    Returns a list of {x, y} dicts.
+    """
+    combined = pd.concat([x, y], axis=1).dropna()
+    if len(combined) > max_points:
+        combined = combined.sample(max_points, random_state=42)
+    return [
+        {"x": round(float(row.iloc[0]), 4), "y": round(float(row.iloc[1]), 4)}
+        for _, row in combined.iterrows()
+    ]

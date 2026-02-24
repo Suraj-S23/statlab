@@ -1,10 +1,9 @@
 /**
- * DoseResponseResults — displays dose-response curve fitting results
- * including IC50, Hill slope, and R².
- * Chart rendering will be added in the visualisation pass.
+ * DoseResponseResults — displays dose-response curve fitting results with chart.
  */
 
 import type { DoseResponseResults as Results } from "../types"
+import DoseResponseChart from "./charts/DoseResponseChart"
 
 interface Props {
   results: Results
@@ -26,14 +25,21 @@ export default function DoseResponseResults({ results, onBack }: Props) {
         </button>
       </div>
 
-      {/* Interpretation */}
-      <div className={`p-4 rounded-xl border mb-6 ${
-        results.r_squared > 0.9 ? "border-green-700 bg-green-950" : "border-yellow-700 bg-yellow-950"
-      }`}>
+      <div className={`p-4 rounded-xl border mb-6 ${results.r_squared > 0.9 ? "border-green-700 bg-green-950" : "border-yellow-700 bg-yellow-950"}`}>
         <p className="text-sm font-medium text-white">{results.interpretation}</p>
       </div>
 
-      {/* Key parameters */}
+      <div className="p-4 rounded-xl border border-gray-800 bg-gray-900 mb-6">
+        <DoseResponseChart
+          curveX={results.curve_x}
+          curveY={results.curve_y}
+          dataX={results.data_x}
+          dataY={results.data_y}
+          xLabel={results.concentration_col}
+          yLabel={results.response_col}
+        />
+      </div>
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: "IC50", value: results.ic50 },
@@ -49,10 +55,6 @@ export default function DoseResponseResults({ results, onBack }: Props) {
           </div>
         ))}
       </div>
-
-      <p className="text-gray-600 text-xs mt-6">
-        Chart visualisation coming in the next update.
-      </p>
     </div>
   )
 }

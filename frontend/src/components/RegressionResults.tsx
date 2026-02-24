@@ -1,9 +1,9 @@
 /**
- * RegressionResults — displays simple linear regression results
- * including slope, intercept, R², and significance.
+ * RegressionResults — displays linear regression results with scatter + line chart.
  */
 
 import type { RegressionResults as Results } from "../types"
+import ScatterPlot from "./charts/ScatterPlot"
 
 interface Props {
   results: Results
@@ -25,14 +25,19 @@ export default function RegressionResults({ results, onBack }: Props) {
         </button>
       </div>
 
-      {/* Interpretation */}
-      <div className={`p-4 rounded-xl border mb-6 ${
-        results.significant ? "border-green-700 bg-green-950" : "border-gray-700 bg-gray-900"
-      }`}>
+      <div className={`p-4 rounded-xl border mb-6 ${results.significant ? "border-green-700 bg-green-950" : "border-gray-700 bg-gray-900"}`}>
         <p className="text-sm font-medium text-white">{results.interpretation}</p>
       </div>
 
-      {/* Stats grid */}
+      <div className="p-4 rounded-xl border border-gray-800 bg-gray-900 mb-6">
+        <ScatterPlot
+          data={results.scatter}
+          xLabel={results.predictor}
+          yLabel={results.outcome}
+          line={results.line}
+        />
+      </div>
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: "Slope", value: results.slope },

@@ -1,17 +1,18 @@
 /**
- * DescriptiveResults — displays a summary statistics table
- * for each selected numeric column.
+ * DescriptiveResults — displays descriptive statistics with histogram per column.
+ * Allows toggling between columns when multiple are selected.
  */
 
+import { useState } from "react"
 import type { DescriptiveResults as Results } from "../types"
+import Histogram from "./charts/Histogram"
 
 interface Props {
   results: Results
   onBack: () => void
 }
 
-/** Stat rows to display and their labels. */
-const STATS = [
+const STATS_ROWS = [
   { key: "count", label: "Count" },
   { key: "mean", label: "Mean" },
   { key: "median", label: "Median" },
@@ -28,6 +29,8 @@ const STATS = [
 
 export default function DescriptiveResults({ results, onBack }: Props) {
   const columns = Object.keys(results)
+  const [activeCol, setActiveCol] = useState(columns[0])
+  const stats = results[activeCol]
 
   return (
     <div className="mt-8">
@@ -35,36 +38,59 @@ export default function DescriptiveResults({ results, onBack }: Props) {
         <h3 className="text-lg font-semibold text-white">Descriptive Statistics</h3>
         <button
           onClick={onBack}
-          className="text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 px-4 py-2 rounded-lg transition-all"
+          className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all"
         >
           ← Back to suggestions
         </button>
       </div>
 
+      {/* Column tabs if multiple selected */}
+      {columns.length > 1 && (
+        <div className="flex gap-2 mb-6 flex-wrap">
+          {columns.map((col) => (
+            <button
+              key={col}
+              onClick={() => setActiveCol(col)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all
+                ${activeCol === col
+                  ? "bg-blue-600 border-blue-500 text-white"
+                  : "bg-gray-900 border-gray-700 text-gray-400 hover:text-white"
+                }`}
+            >
+              {col}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Histogram */}
+      <div className="p-4 rounded-xl border border-gray-800 bg-gray-900 mb-4">
+        <Histogram data={stats.histogram} title={`Distribution of ${activeCol}`} />
+      </div>
+
+      {/* Stats table */}
       <div className="overflow-x-auto rounded-xl border border-gray-800">
         <table className="w-full text-sm text-left">
           <thead className="bg-gray-900 text-gray-400 uppercase text-xs">
             <tr>
-              <th className="px-4 py-3 font-medium">Statistic</th>
-              {columns.map((col) => (
-                <th key={col} className="px-4 py-3 font-medium text-blue-400">{col}</th>
-              ))}
+              <th className="px-4 py-3">Statistic</th>
+              <th className="px-4 py-3">{activeCol}</th>
             </tr>
           </thead>
           <tbody>
-            {STATS.map(({ key, label }) => (
-              <tr key={key} className="border-t border-gray-800 hover:bg-gray-900 transition-colors">
-                <td className="px-4 py-3 text-gray-400 font-medium">{label}</td>
-                {columns.map((col) => (
-                  <td key={col} className="px-4 py-3 text-gray-300">
-                    {/* Highlight outlier count in yellow if non-zero */}
-                    {key === "outliers" && results[col][key] > 0 ? (
-                      <span className="text-yellow-400">{results[col][key as keyof typeof results[typeof col]]}</span>
-                    ) : (
-                      String(results[col][key as keyof typeof results[typeof col]])
-                    )}
-                  </td>
-                ))}
+            {STATS_ROWS.map(({ key, label }) => (
+              <tr
+                key={key}
+                className={`border-t border-gray-800 hover:bg-gray-900 transition-colors
+                  ${key === "outliers" && (stats[key as keyof typeof stats] as number) > 0
+                    ? "text-yellow-400"
+                    : "text-gray-300"
+                  }`}
+              >
+                <td className="px-4 py-2.5 text-gray-500">{label}</td>
+                <td className="px-4 py-2.5">
+                  {String(stats[key as keyof typeof stats])}
+                </td>
               </tr>
             ))}
           </tbody>
