@@ -8,7 +8,8 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
 from utils.session import get_session
-from services.analysis import descriptive_statistics
+from services.analysis import descriptive_statistics, two_group_comparison
+
 
 router = APIRouter()
 
@@ -37,4 +38,31 @@ def run_descriptive(request: AnalysisRequest):
         results = descriptive_statistics(data, request.columns)
         return results
     except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+class TwoGroupRequest(BaseModel):
+    """Request body for two-group comparison."""
+
+    session_id: str
+    group_col: str  # categorical column defining the two groups
+    value_col: str  # numeric column to compare
+
+
+@router.post("/analysis/two-group")
+def run_two_group(request: TwoGroupRequest):
+    """
+    Retrieve dataset from Redis, then compare a numeric outcome
+    between exactly two groups using t-test and Mann-Whitney U.
+    """
+    data = get_session(request.session_id)
+    if data is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Session not found or expired. Please re-upload your file.",
+        )
+    try:
+        results = two_group_comparison(data, request.group_col, request.value_col)
+        return results
+    except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

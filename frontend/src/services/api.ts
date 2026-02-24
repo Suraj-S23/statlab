@@ -4,7 +4,7 @@
  * the base URL for production later.
  */
 
-import type { UploadResponse, Suggestion, Column, DescriptiveResults } from "../types"
+import type { UploadResponse, Suggestion, Column, DescriptiveResults, TwoGroupResults } from "../types"
 
 const BASE_URL = "http://localhost:8000/api"
 
@@ -60,6 +60,28 @@ export async function runDescriptive(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ session_id, columns }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.detail)
+  }
+
+  return response.json()
+}
+
+/**
+ * Run a two-group comparison (t-test / Mann-Whitney U).
+ */
+export async function runTwoGroup(
+  session_id: string,
+  group_col: string,
+  value_col: string
+): Promise<TwoGroupResults> {
+  const response = await fetch(`${BASE_URL}/analysis/two-group`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id, group_col, value_col }),
   })
 
   if (!response.ok) {

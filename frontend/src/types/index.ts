@@ -46,3 +46,24 @@ export interface ColumnStats {
 
 /** Full descriptive statistics result — keyed by column name. */
 export type DescriptiveResults = Record<string, ColumnStats>
+
+/** Group summary statistics for two-group comparison. */
+export interface GroupSummary {
+  n: number
+  mean: number
+  median: number
+  std: number
+  normality_p: number | null
+  normality: string
+}
+
+/** Result of a two-group comparison (t-test / Mann-Whitney). */
+export interface TwoGroupResults {
+  group_column: string
+  value_column: string
+  groups: Record<string, GroupSummary>
+  t_test: { statistic: number; p_value: string; significant: boolean }
+  mann_whitney: { statistic: number; p_value: string; significant: boolean }
+  recommended_test: string
+  interpretation: string
+}
