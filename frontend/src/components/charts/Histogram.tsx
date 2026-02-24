@@ -30,7 +30,7 @@ export default function Histogram({ data, title }: Props) {
       </p>
 
       <div className="histogram-chart">
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height={280}>
           <BarChart
             data={data}
             // ⬇️ increased bottom margin to give rotated labels more room

@@ -395,13 +395,13 @@ export default function App() {
   const s: Record<string, React.CSSProperties> = {
     root: { minHeight: "100vh", background: "var(--bg)", color: "var(--text)", fontFamily: "var(--font-sans)" },
     nav: { position: "sticky", top: 0, zIndex: 50, background: "var(--nav-bg)", backdropFilter: "blur(12px)", borderBottom: "1px solid var(--border)" },
-    navInner: { maxWidth: 1100, margin: "0 auto", padding: "0 28px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between" },
+    navInner: { maxWidth: 1400, margin: "0 auto", padding: "0 32px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between" },
     logo: { display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", padding: 0 },
     logoBox: { width: 28, height: 28, borderRadius: 8, background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center" },
     logoText: { color: "var(--text)", fontWeight: 700, fontSize: 14, fontFamily: "var(--font-sans)" },
-    main: { maxWidth: 1100, margin: "0 auto", padding: "0 28px 80px" },
+    main: { maxWidth: 1400, margin: "0 auto", padding: "0 32px 80px" },
     footer: { borderTop: "1px solid var(--border)", marginTop: 80 },
-    footerInner: { maxWidth: 1100, margin: "0 auto", padding: "0 28px", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" },
+    footerInner: { maxWidth: 1400, margin: "0 auto", padding: "0 32px", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" },
   }
 
   return (
