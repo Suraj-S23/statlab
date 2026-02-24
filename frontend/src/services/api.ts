@@ -9,7 +9,8 @@ import type { UploadResponse, Suggestion, Column, DescriptiveResults } from "../
 const BASE_URL = "http://localhost:8000/api"
 
 /**
- * Upload a CSV file and receive parsed column metadata and a data preview.
+ * Upload a CSV file. Returns a session ID and metadata.
+ * The full dataset is stored server-side in Redis.
  */
 export async function uploadCSV(file: File): Promise<UploadResponse> {
   const formData = new FormData()
@@ -48,17 +49,17 @@ export async function getSuggestions(columns: Column[]): Promise<Suggestion[]> {
 }
 
 /**
- * Run descriptive statistics on selected columns.
- * Sends the full dataset rows and the chosen column names.
+ * Run descriptive statistics using the session ID.
+ * The backend retrieves the full dataset from Redis.
  */
 export async function runDescriptive(
-  data: Record<string, string | number>[],
+  session_id: string,
   columns: string[]
 ): Promise<DescriptiveResults> {
   const response = await fetch(`${BASE_URL}/analysis/descriptive`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ data, columns }),
+    body: JSON.stringify({ session_id, columns }),
   })
 
   if (!response.ok) {

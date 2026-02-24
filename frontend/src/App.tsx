@@ -26,7 +26,7 @@ function App() {
     setError("")
     try {
       if (selectedTest === "Descriptive Statistics") {
-        const res = await runDescriptive(data.data, columns)
+        const res = await runDescriptive(data.session_id, columns)
         setResults(res)
       }
     } catch (e: unknown) {
@@ -54,14 +54,12 @@ function App() {
         <>
           <DataPreview data={data} onReset={handleReset} />
 
-          {/* Results view */}
           {results ? (
             <DescriptiveResults
               results={results}
               onBack={() => setResults(null)}
             />
           ) : selectedTest ? (
-            /* Column selection view */
             <>
               {error && <p className="text-red-400 text-sm mt-4">{error}</p>}
               {loading ? (
@@ -77,7 +75,6 @@ function App() {
               )}
             </>
           ) : (
-            /* Suggestion panel */
             <SuggestionPanel data={data} onSelectTest={setSelectedTest} />
           )}
         </>

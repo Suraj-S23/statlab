@@ -12,6 +12,7 @@ export interface Column {
 
 /** Response returned by the /api/upload endpoint. */
 export interface UploadResponse {
+  session_id: string
   filename: string
   rows: number
   columns: Column[]
