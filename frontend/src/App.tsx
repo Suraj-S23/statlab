@@ -3,11 +3,14 @@
  * - LabRat branding
  * - Centered layout with interactive 3D Bivariate Density on landing page
  * - Obsidian / Arctic Light theme toggle
+ * - Language switcher (EN / DE / FR)
  * - Framer Motion page transitions
  */
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useTranslation } from "react-i18next"
+import i18n from "./i18n/index"
 import { useTheme } from "./contexts/ThemeContext"
 import UploadZone from "./components/UploadZone"
 import DataPreview from "./components/DataPreview"
@@ -66,17 +69,14 @@ function Bivariateplot() {
   const lastX = useRef(0)
   const { isDark } = useTheme()
 
-  // Bivariate normal with r=0.72
   const r = 0.72
   const bivnorm = useCallback((x: number, y: number) => {
     const z = (x * x - 2 * r * x * y + y * y) / (1 - r * r)
     return Math.exp(-z / 2) / (2 * Math.PI * Math.sqrt(1 - r * r))
   }, [])
 
-  // Stable scatter data
   const scatterRef = useRef<{ x: number; y: number }[]>([])
   useEffect(() => {
-    // Box-Muller bivariate normal
     const pts: { x: number; y: number }[] = []
     const seed = (n: number) => {
       const x = Math.sin(n * 127.1) * 43758.5453
@@ -133,7 +133,6 @@ function Bivariateplot() {
 
       const [ar, ag, ab] = accentRgb
 
-      // Grid floor
       ctx.strokeStyle = `rgba(${ar},${ag},${ab},${isDark ? 0.06 : 0.1})`
       ctx.lineWidth = 0.5
       for (let i = -4; i <= 4; i++) {
@@ -143,7 +142,6 @@ function Bivariateplot() {
         ctx.beginPath(); ctx.moveTo(c.sx, c.sy); ctx.lineTo(d.sx, d.sy); ctx.stroke()
       }
 
-      // Surface cells
       const cells: { pts: { sx: number; sy: number }[]; depth: number; density: number }[] = []
       for (let iz = 0; iz < GRID - 1; iz++) {
         for (let ix = 0; ix < GRID - 1; ix++) {
@@ -166,9 +164,7 @@ function Bivariateplot() {
       cells.sort((a, b) => b.depth - a.depth)
 
       cells.forEach(({ pts, density }) => {
-        const alpha = isDark
-          ? 0.1 + density * 0.65
-          : 0.12 + density * 0.55
+        const alpha = isDark ? 0.1 + density * 0.65 : 0.12 + density * 0.55
         const bright = 0.25 + density * 0.75
         ctx.fillStyle = `rgba(${ar},${ag},${ab},${alpha * bright})`
         ctx.strokeStyle = `rgba(${ar},${ag},${ab},${alpha * 0.12})`
@@ -179,7 +175,6 @@ function Bivariateplot() {
         ctx.closePath(); ctx.fill(); ctx.stroke()
       })
 
-      // Scatter points (floor projection)
       scatterRef.current.forEach(p => {
         const fp = project(p.x, 0.01, p.y)
         ctx.fillStyle = `rgba(${ar},${ag},${ab},${isDark ? 0.38 : 0.5})`
@@ -188,14 +183,12 @@ function Bivariateplot() {
         ctx.fill()
       })
 
-      // Peak annotation — r value
       const peak = project(0, 1.7, 0)
       ctx.fillStyle = `rgba(${ar},${ag},${ab},0.9)`
       ctx.font = `600 11px 'IBM Plex Sans', sans-serif`
       ctx.textAlign = "center"
       ctx.fillText(`r = ${r}`, peak.sx, peak.sy - 6)
 
-      // Axis labels
       ctx.fillStyle = `rgba(${ar},${ag},${ab},${isDark ? 0.3 : 0.45})`
       ctx.font = `10px 'IBM Plex Mono', monospace`
       const xLbl = project(2.4, 0, 0)
@@ -204,13 +197,11 @@ function Bivariateplot() {
       const yLbl = project(0, 0, 2.4)
       ctx.fillText("X₂", yLbl.sx, yLbl.sy)
 
-      // Formula watermark
       ctx.fillStyle = `rgba(${ar},${ag},${ab},${isDark ? 0.18 : 0.25})`
       ctx.font = `9px 'IBM Plex Mono', monospace`
       ctx.textAlign = "right"
       ctx.fillText("f(x₁,x₂) — Bivariate Normal · Pearson correlation", W - 10, H - 10)
 
-      // Drag hint (fades after first interaction)
       if (!isDragging.current) {
         ctx.fillStyle = `rgba(${ar},${ag},${ab},0.25)`
         ctx.font = `9px 'IBM Plex Sans', sans-serif`
@@ -228,28 +219,17 @@ function Bivariateplot() {
     return () => cancelAnimationFrame(animRef.current)
   }, [isDark, bivnorm])
 
-  // Mouse drag handlers
-  const onMouseDown = (e: React.MouseEvent) => {
-    isDragging.current = true
-    lastX.current = e.clientX
-  }
+  const onMouseDown = (e: React.MouseEvent) => { isDragging.current = true; lastX.current = e.clientX }
   const onMouseMove = (e: React.MouseEvent) => {
     if (!isDragging.current) return
-    const delta = (lastX.current - e.clientX) * 0.008
-    angleRef.current += delta
+    angleRef.current += (lastX.current - e.clientX) * 0.008
     lastX.current = e.clientX
   }
   const onMouseUp = () => { isDragging.current = false }
-
-  // Touch drag
-  const onTouchStart = (e: React.TouchEvent) => {
-    isDragging.current = true
-    lastX.current = e.touches[0].clientX
-  }
+  const onTouchStart = (e: React.TouchEvent) => { isDragging.current = true; lastX.current = e.touches[0].clientX }
   const onTouchMove = (e: React.TouchEvent) => {
     if (!isDragging.current) return
-    const delta = (e.touches[0].clientX - lastX.current) * 0.008
-    angleRef.current += delta
+    angleRef.current += (e.touches[0].clientX - lastX.current) * 0.008
     lastX.current = e.touches[0].clientX
   }
   const onTouchEnd = () => { isDragging.current = false }
@@ -269,7 +249,7 @@ function Bivariateplot() {
   )
 }
 
-// ── Theme toggle button ───────────────────────────────────────────────────────
+// ── Theme toggle ──────────────────────────────────────────────────────────────
 
 function ThemeToggle() {
   const { isDark, toggle } = useTheme()
@@ -277,20 +257,40 @@ function ThemeToggle() {
     <button
       onClick={toggle}
       title={isDark ? "Switch to Arctic Light" : "Switch to Obsidian"}
-      style={{
-        width: 36, height: 36,
-        borderRadius: 8,
-        border: "1px solid var(--border)",
-        background: "var(--surface)",
-        color: "var(--text-muted)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        cursor: "pointer",
-        transition: "all 0.2s",
-        fontSize: 16,
-      }}
+      style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-muted)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s", fontSize: 16 }}
     >
       {isDark ? "☀" : "◑"}
     </button>
+  )
+}
+
+// ── Language switcher ─────────────────────────────────────────────────────────
+
+const LANGS = ["en", "de", "fr"] as const
+type Lang = typeof LANGS[number]
+
+function LanguageSwitcher() {
+  const { isDark } = useTheme()
+  const [lang, setLang] = useState<Lang>(
+    (localStorage.getItem("labrat-lang") as Lang) ?? "en"
+  )
+  const changeLang = (l: Lang) => {
+    i18n.changeLanguage(l)
+    localStorage.setItem("labrat-lang", l)
+    setLang(l)
+  }
+  return (
+    <div style={{ display: "flex", gap: 2, background: "var(--surface)", borderRadius: 8, border: "1px solid var(--border)", padding: 2 }}>
+      {LANGS.map(l => (
+        <button key={l} onClick={() => changeLang(l)} style={{
+          padding: "3px 9px", borderRadius: 6, border: "none", cursor: "pointer",
+          fontSize: 11, fontWeight: 600, fontFamily: "var(--font-mono)",
+          background: lang === l ? "var(--accent)" : "transparent",
+          color: lang === l ? (isDark ? "#000" : "#fff") : "var(--text-muted)",
+          transition: "all 0.15s",
+        }}>{l.toUpperCase()}</button>
+      ))}
+    </div>
   )
 }
 
@@ -298,6 +298,7 @@ function ThemeToggle() {
 
 export default function App() {
   const { isDark } = useTheme()
+  const { t } = useTranslation()
   const [data, setData] = useState<UploadResponse | null>(null)
   const [selectedTest, setSelectedTest] = useState<string | null>(null)
   const [results, setResults] = useState<AnyResults | null>(null)
@@ -317,25 +318,21 @@ export default function App() {
     }
   }
 
-  const handleReset = () => {
-    setData(null); setSelectedTest(null); setResults(null); setError("")
-  }
-  const handleBackToSuggestions = () => {
-    setSelectedTest(null); setResults(null); setError("")
-  }
+  const handleReset = () => { setData(null); setSelectedTest(null); setResults(null); setError("") }
+  const handleBackToSuggestions = () => { setSelectedTest(null); setResults(null); setError("") }
 
   const renderResults = () => {
     if (!results) return null
     const props = { onBack: handleBackToSuggestions }
     switch (results.type) {
-      case "descriptive":    return <DescriptiveResults results={results.data} {...props} />
-      case "two-group":      return <TwoGroupResults results={results.data} {...props} />
-      case "anova":          return <AnovaResults results={results.data} {...props} />
-      case "correlation":    return <CorrelationResults results={results.data} {...props} />
-      case "regression":     return <RegressionResults results={results.data} {...props} />
-      case "chi-square":     return <ChiSquareResults results={results.data} {...props} />
-      case "dose-response":  return <DoseResponseResults results={results.data} {...props} />
-      case "kaplan-meier":   return <KaplanMeierResults results={results.data} {...props} />
+      case "descriptive":   return <DescriptiveResults results={results.data} {...props} />
+      case "two-group":     return <TwoGroupResults results={results.data} {...props} />
+      case "anova":         return <AnovaResults results={results.data} {...props} />
+      case "correlation":   return <CorrelationResults results={results.data} {...props} />
+      case "regression":    return <RegressionResults results={results.data} {...props} />
+      case "chi-square":    return <ChiSquareResults results={results.data} {...props} />
+      case "dose-response": return <DoseResponseResults results={results.data} {...props} />
+      case "kaplan-meier":  return <KaplanMeierResults results={results.data} {...props} />
     }
   }
 
@@ -344,14 +341,8 @@ export default function App() {
     if (loading) return (
       <motion.div variants={pageVariants} initial="initial" animate="animate"
         style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, marginTop: 48 }}>
-        <div style={{
-          width: 28, height: 28,
-          border: "2px solid var(--accent)",
-          borderTopColor: "transparent",
-          borderRadius: "50%",
-          animation: "spin 0.8s linear infinite",
-        }} />
-        <p style={{ color: "var(--text-muted)", fontSize: 13 }}>Running analysis...</p>
+        <div style={{ width: 28, height: 28, border: "2px solid var(--accent)", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+        <p style={{ color: "var(--text-muted)", fontSize: 13 }}>{t("common.runningAnalysis")}</p>
       </motion.div>
     )
 
@@ -403,31 +394,14 @@ export default function App() {
 
   const s: Record<string, React.CSSProperties> = {
     root: { minHeight: "100vh", background: "var(--bg)", color: "var(--text)", fontFamily: "var(--font-sans)" },
-    nav: {
-      position: "sticky", top: 0, zIndex: 50,
-      background: "var(--nav-bg)",
-      backdropFilter: "blur(12px)",
-      borderBottom: "1px solid var(--border)",
-    },
-    navInner: {
-      maxWidth: 1100, margin: "0 auto", padding: "0 28px",
-      height: 52, display: "flex", alignItems: "center", justifyContent: "space-between",
-    },
-    logo: {
-      display: "flex", alignItems: "center", gap: 8,
-      background: "none", border: "none", cursor: "pointer", padding: 0,
-    },
-    logoBox: {
-      width: 28, height: 28, borderRadius: 8,
-      background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center",
-    },
+    nav: { position: "sticky", top: 0, zIndex: 50, background: "var(--nav-bg)", backdropFilter: "blur(12px)", borderBottom: "1px solid var(--border)" },
+    navInner: { maxWidth: 1100, margin: "0 auto", padding: "0 28px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between" },
+    logo: { display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", padding: 0 },
+    logoBox: { width: 28, height: 28, borderRadius: 8, background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center" },
     logoText: { color: "var(--text)", fontWeight: 700, fontSize: 14, fontFamily: "var(--font-sans)" },
     main: { maxWidth: 1100, margin: "0 auto", padding: "0 28px 80px" },
     footer: { borderTop: "1px solid var(--border)", marginTop: 80 },
-    footerInner: {
-      maxWidth: 1100, margin: "0 auto", padding: "0 28px",
-      height: 44, display: "flex", alignItems: "center", justifyContent: "space-between",
-    },
+    footerInner: { maxWidth: 1100, margin: "0 auto", padding: "0 28px", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" },
   }
 
   return (
@@ -448,15 +422,14 @@ export default function App() {
             {data && (
               <>
                 <span style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-mono)" }}>
-                  {data.filename} · {data.rows.toLocaleString()} rows
+                  {data.filename} · {data.rows.toLocaleString()} {t("nav.rows")}
                 </span>
-                <button onClick={handleReset} style={{
-                  fontSize: 11, color: "var(--text-muted)", background: "none",
-                  border: "1px solid var(--border)", borderRadius: 6,
-                  padding: "3px 10px", cursor: "pointer",
-                }}>New file</button>
+                <button onClick={handleReset} style={{ fontSize: 11, color: "var(--text-muted)", background: "none", border: "1px solid var(--border)", borderRadius: 6, padding: "3px 10px", cursor: "pointer" }}>
+                  {t("nav.newFile")}
+                </button>
               </>
             )}
+            <LanguageSwitcher />
             <ThemeToggle />
           </div>
         </div>
@@ -472,51 +445,28 @@ export default function App() {
 
               {/* Centered hero */}
               <div style={{ textAlign: "center", paddingTop: 56, paddingBottom: 32 }}>
-                <div style={{
-                  display: "inline-flex", alignItems: "center", gap: 6,
-                  background: "var(--accent-dim)",
-                  border: "1px solid var(--accent)",
-                  borderRadius: 20, padding: "4px 12px",
-                  marginBottom: 18, opacity: 0.9,
-                }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--accent-dim)", border: "1px solid var(--accent)", borderRadius: 20, padding: "4px 12px", marginBottom: 18, opacity: 0.9 }}>
                   <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", display: "inline-block" }} />
                   <span style={{ color: "var(--accent-text)", fontSize: 11, fontWeight: 600, fontFamily: "var(--font-mono)" }}>
-                    open source · no account required
+                    {t("landing.badge")}
                   </span>
                 </div>
 
-                <h1 style={{
-                  color: "var(--text)", fontFamily: "var(--font-sans)",
-                  fontSize: "clamp(28px, 5vw, 44px)", fontWeight: 700,
-                  lineHeight: 1.15, margin: "0 0 14px",
-                  letterSpacing: "-0.02em",
-                }}>
-                  Statistical analysis<br />
-                  <span style={{ color: "var(--accent-text)" }}>for researchers</span>
+                <h1 style={{ color: "var(--text)", fontFamily: "var(--font-sans)", fontSize: "clamp(28px, 5vw, 44px)", fontWeight: 700, lineHeight: 1.15, margin: "0 0 14px", letterSpacing: "-0.02em" }}>
+                  {t("landing.headline1")}<br />
+                  <span style={{ color: "var(--accent-text)" }}>{t("landing.headline2")}</span>
                 </h1>
 
-                <p style={{
-                  color: "var(--text-muted)", fontSize: 15, lineHeight: 1.65,
-                  maxWidth: 480, margin: "0 auto 28px",
-                }}>
-                  Upload a CSV and run professional-grade statistical tests —
-                  t-tests, ANOVA, regression, survival analysis and more.
+                <p style={{ color: "var(--text-muted)", fontSize: 15, lineHeight: 1.65, maxWidth: 480, margin: "0 auto 28px" }}>
+                  {t("landing.subtitle")}
                 </p>
 
                 {/* Feature pills */}
                 <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6, marginBottom: 36 }}>
-                  {[
-                    "Descriptive statistics", "t-test & Mann-Whitney", "ANOVA",
-                    "Correlation", "Linear regression", "Chi-square",
-                    "Dose-response / IC50", "Kaplan-Meier survival",
-                  ].map(f => (
-                    <span key={f} style={{
-                      fontSize: 11, color: "var(--text-muted)",
-                      background: "var(--surface)",
-                      border: "1px solid var(--border)",
-                      padding: "4px 11px", borderRadius: 20,
-                      fontFamily: "var(--font-mono)",
-                    }}>{f}</span>
+                  {(["descriptive", "ttest", "anova", "correlation", "regression", "chi", "dose", "km"] as const).map(k => (
+                    <span key={k} style={{ fontSize: 11, color: "var(--text-muted)", background: "var(--surface)", border: "1px solid var(--border)", padding: "4px 11px", borderRadius: 20, fontFamily: "var(--font-mono)" }}>
+                      {t(`landing.pills.${k}`)}
+                    </span>
                   ))}
                 </div>
               </div>
@@ -526,34 +476,19 @@ export default function App() {
                 <UploadZone onUpload={setData} />
               </div>
 
-              {/* 3D plot — full width, below upload */}
-              <div style={{
-                marginTop: 48,
-                border: "1px solid var(--border)",
-                borderRadius: 16,
-                overflow: "hidden",
-                background: "var(--bg-alt)",
-              }}>
-                <div style={{
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  padding: "10px 16px",
-                  borderBottom: "1px solid var(--border)",
-                }}>
+              {/* 3D plot */}
+              <div style={{ marginTop: 48, border: "1px solid var(--border)", borderRadius: 16, overflow: "hidden", background: "var(--bg-alt)" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderBottom: "1px solid var(--border)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{
-                      background: "var(--accent-dim)",
-                      color: "var(--accent-text)",
-                      fontSize: 9, fontWeight: 700,
-                      padding: "2px 8px", borderRadius: 4,
-                      textTransform: "uppercase", letterSpacing: "0.08em",
-                      fontFamily: "var(--font-mono)",
-                    }}>Correlation</span>
+                    <span style={{ background: "var(--accent-dim)", color: "var(--accent-text)", fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 4, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-mono)" }}>
+                      {t("landing.plotType")}
+                    </span>
                     <span style={{ color: "var(--text)", fontSize: 12, fontWeight: 600 }}>
-                      Bivariate Normal Density
+                      {t("landing.plotLabel")}
                     </span>
                   </div>
                   <span style={{ color: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-mono)" }}>
-                    drag to rotate
+                    {t("landing.dragHint")}
                   </span>
                 </div>
                 <div style={{ height: 300 }}>
@@ -562,24 +497,16 @@ export default function App() {
               </div>
 
               {/* How it works */}
-              <div style={{
-                display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: 12, marginTop: 20,
-              }}>
-                {[
-                  { step: "01", title: "Upload your data", desc: "Drop a CSV. LabRat automatically detects column types and suggests relevant tests." },
-                  { step: "02", title: "Choose an analysis", desc: "Select from eight statistical tests. LabRat guides column selection." },
-                  { step: "03", title: "Export your results", desc: "Download as PDF reports, PNG charts, or CSV for further analysis." },
-                ].map(({ step, title, desc }) => (
-                  <div key={step} style={{
-                    padding: "18px 20px",
-                    border: "1px solid var(--border)",
-                    borderRadius: 14,
-                    background: "var(--surface)",
-                  }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginTop: 20 }}>
+                {([
+                  { step: "01", titleKey: "landing.steps.s1title", descKey: "landing.steps.s1desc" },
+                  { step: "02", titleKey: "landing.steps.s2title", descKey: "landing.steps.s2desc" },
+                  { step: "03", titleKey: "landing.steps.s3title", descKey: "landing.steps.s3desc" },
+                ]).map(({ step, titleKey, descKey }) => (
+                  <div key={step} style={{ padding: "18px 20px", border: "1px solid var(--border)", borderRadius: 14, background: "var(--surface)" }}>
                     <span style={{ color: "var(--accent-text)", fontSize: 10, fontFamily: "var(--font-mono)", fontWeight: 600 }}>{step}</span>
-                    <h3 style={{ color: "var(--text)", fontWeight: 600, fontSize: 13, margin: "6px 0 6px" }}>{title}</h3>
-                    <p style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.6, margin: 0 }}>{desc}</p>
+                    <h3 style={{ color: "var(--text)", fontWeight: 600, fontSize: 13, margin: "6px 0 6px" }}>{t(titleKey)}</h3>
+                    <p style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.6, margin: 0 }}>{t(descKey)}</p>
                   </div>
                 ))}
               </div>
@@ -594,11 +521,7 @@ export default function App() {
 
               {error && (
                 <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                  style={{
-                    marginTop: 10, padding: "10px 14px",
-                    borderRadius: 10, border: "1px solid #7f1d1d",
-                    background: "#450a0a", color: "#fca5a5", fontSize: 13,
-                  }}>
+                  style={{ marginTop: 10, padding: "10px 14px", borderRadius: 10, border: "1px solid #7f1d1d", background: "#450a0a", color: "#fca5a5", fontSize: 13 }}>
                   {error}
                 </motion.div>
               )}
@@ -620,7 +543,7 @@ export default function App() {
       <footer style={s.footer}>
         <div style={s.footerInner}>
           <span style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-mono)" }}>
-            LabRat — statistical analysis for researchers
+            {t("landing.footer")}
           </span>
           <span style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-mono)" }}>
             FastAPI · React · Redis
