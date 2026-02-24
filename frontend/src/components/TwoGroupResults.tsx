@@ -4,6 +4,7 @@
 
 import type { TwoGroupResults as Results } from "../types"
 import GroupBarChart from "./charts/GroupBarChart"
+import ExportMenu from "./ExportMenu"
 
 interface Props {
   results: Results
@@ -29,11 +30,27 @@ export default function TwoGroupResults({ results, onBack }: Props) {
             {results.value_column} by {results.group_column}
           </p>
         </div>
-        <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
-          ← Back to suggestions
-        </button>
+        <div className="flex gap-2">
+          <ExportMenu
+            targetId="two-group-results"
+            filename={`two_group_${results.value_column}_by_${results.group_column}`}
+            pdfTitle={`Two-Group Comparison — ${results.value_column} by ${results.group_column}`}
+            csvData={Object.entries(results.groups).map(([group, g]) => ({
+              group,
+              n: g.n,
+              mean: g.mean,
+              median: g.median,
+              std: g.std,
+              normality: g.normality,
+            }))}
+          />
+          <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
+            ← Back to suggestions
+          </button>
+        </div>
       </div>
 
+      <div id="two-group-results">
       {/* Interpretation */}
       <div className={`p-4 rounded-xl border mb-6 ${
         results.t_test.significant || results.mann_whitney.significant
@@ -86,6 +103,7 @@ export default function TwoGroupResults({ results, onBack }: Props) {
             <TestRow name="Mann-Whitney U" stat={results.mann_whitney.statistic} p={results.mann_whitney.p_value} significant={results.mann_whitney.significant} recommended={results.recommended_test === "Mann-Whitney U"} />
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )

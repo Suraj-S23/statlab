@@ -4,6 +4,7 @@
 
 import type { RegressionResults as Results } from "../types"
 import ScatterPlot from "./charts/ScatterPlot"
+import ExportMenu from "./ExportMenu"
 
 interface Props {
   results: Results
@@ -20,11 +21,30 @@ export default function RegressionResults({ results, onBack }: Props) {
             {results.outcome} ~ {results.predictor} · n = {results.n}
           </p>
         </div>
-        <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
-          ← Back to suggestions
-        </button>
+        <div className="flex gap-2">
+          <ExportMenu
+            targetId="regression-results"
+            filename={`regression_${results.outcome}_on_${results.predictor}`}
+            pdfTitle={`Linear Regression — ${results.outcome} ~ ${results.predictor}`}
+            csvData={[{
+              predictor: results.predictor,
+              outcome: results.outcome,
+              n: results.n,
+              slope: results.slope,
+              intercept: results.intercept,
+              r_squared: results.r_squared,
+              p_value: results.p_value,
+              std_err: results.std_err,
+              significant: results.significant,
+            }]}
+          />
+          <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
+            ← Back to suggestions
+          </button>
+        </div>
       </div>
 
+      <div id="regression-results">
       <div className={`p-4 rounded-xl border mb-6 ${results.significant ? "border-green-700 bg-green-950" : "border-gray-700 bg-gray-900"}`}>
         <p className="text-sm font-medium text-white">{results.interpretation}</p>
       </div>
@@ -55,6 +75,7 @@ export default function RegressionResults({ results, onBack }: Props) {
           </div>
         ))}
       </div>
+    </div>
     </div>
   )
 }

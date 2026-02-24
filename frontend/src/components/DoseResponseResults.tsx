@@ -4,6 +4,7 @@
 
 import type { DoseResponseResults as Results } from "../types"
 import DoseResponseChart from "./charts/DoseResponseChart"
+import ExportMenu from "./ExportMenu"
 
 interface Props {
   results: Results
@@ -20,11 +21,29 @@ export default function DoseResponseResults({ results, onBack }: Props) {
             {results.response_col} ~ {results.concentration_col} · n = {results.n}
           </p>
         </div>
-        <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
-          ← Back to suggestions
-        </button>
+        <div className="flex gap-2">
+          <ExportMenu
+            targetId="dose-response-results"
+            filename={`dose_response_${results.response_col}`}
+            pdfTitle={`Dose-Response — ${results.response_col} ~ ${results.concentration_col}`}
+            csvData={[{
+              concentration_col: results.concentration_col,
+              response_col: results.response_col,
+              n: results.n,
+              ic50: results.ic50,
+              hill_slope: results.hill_slope,
+              bottom: results.bottom,
+              top: results.top,
+              r_squared: results.r_squared,
+            }]}
+          />
+          <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
+            ← Back to suggestions
+          </button>
+        </div>
       </div>
 
+      <div id="dose-response-results">
       <div className={`p-4 rounded-xl border mb-6 ${results.r_squared > 0.9 ? "border-green-700 bg-green-950" : "border-yellow-700 bg-yellow-950"}`}>
         <p className="text-sm font-medium text-white">{results.interpretation}</p>
       </div>
@@ -54,6 +73,7 @@ export default function DoseResponseResults({ results, onBack }: Props) {
             <p className="text-white font-semibold">{String(value)}</p>
           </div>
         ))}
+      </div>
       </div>
     </div>
   )

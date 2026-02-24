@@ -4,6 +4,7 @@
 
 import type { CorrelationResults as Results } from "../types"
 import ScatterPlot from "./charts/ScatterPlot"
+import ExportMenu from "./ExportMenu"
 
 interface Props {
   results: Results
@@ -20,11 +21,23 @@ export default function CorrelationResults({ results, onBack }: Props) {
             {results.col_a} vs {results.col_b} · n = {results.n}
           </p>
         </div>
-        <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
-          ← Back to suggestions
-        </button>
+        <div className="flex gap-2">
+          <ExportMenu
+            targetId="correlation-results"
+            filename={`correlation_${results.col_a}_vs_${results.col_b}`}
+            pdfTitle={`Correlation — ${results.col_a} vs ${results.col_b}`}
+            csvData={[
+              { test: "Pearson r", coefficient: results.pearson.r, p_value: results.pearson.p_value, significant: results.pearson.significant },
+              { test: "Spearman rho", coefficient: results.spearman.rho, p_value: results.spearman.p_value, significant: results.spearman.significant },
+            ]}
+          />
+          <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
+            ← Back to suggestions
+          </button>
+        </div>
       </div>
 
+      <div id="correlation-results">
       <div className={`p-4 rounded-xl border mb-6 ${results.pearson.significant ? "border-green-700 bg-green-950" : "border-gray-700 bg-gray-900"}`}>
         <p className="text-sm font-medium text-white">{results.interpretation}</p>
       </div>
@@ -58,6 +71,7 @@ export default function CorrelationResults({ results, onBack }: Props) {
             </tr>
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   )

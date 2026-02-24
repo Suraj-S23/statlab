@@ -4,6 +4,7 @@
 
 import type { AnovaResults as Results } from "../types"
 import GroupBarChart from "./charts/GroupBarChart"
+import ExportMenu from "./ExportMenu"
 
 interface Props {
   results: Results
@@ -29,11 +30,26 @@ export default function AnovaResults({ results, onBack }: Props) {
             {results.value_column} across {results.n_groups} groups of {results.group_column}
           </p>
         </div>
-        <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
-          ← Back to suggestions
-        </button>
+        <div className="flex gap-2">
+          <ExportMenu
+            targetId="anova-results"
+            filename={`anova_${results.value_column}_by_${results.group_column}`}
+            pdfTitle={`One-Way ANOVA — ${results.value_column} by ${results.group_column}`}
+            csvData={Object.entries(results.groups).map(([group, g]) => ({
+              group,
+              n: g.n,
+              mean: g.mean,
+              median: g.median,
+              std: g.std,
+            }))}
+          />
+          <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
+            ← Back to suggestions
+          </button>
+        </div>
       </div>
 
+      <div id="anova-results">
       {/* Interpretation */}
       <div className={`p-4 rounded-xl border mb-4 ${results.anova.significant ? "border-green-700 bg-green-950" : "border-gray-700 bg-gray-900"}`}>
         <p className="text-sm font-medium text-white">{results.interpretation}</p>
@@ -100,6 +116,7 @@ export default function AnovaResults({ results, onBack }: Props) {
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )

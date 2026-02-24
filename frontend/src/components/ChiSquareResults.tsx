@@ -4,6 +4,7 @@
  */
 
 import type { ChiSquareResults as Results } from "../types"
+import ExportMenu from "./ExportMenu"
 
 interface Props {
   results: Results
@@ -20,11 +21,30 @@ export default function ChiSquareResults({ results, onBack }: Props) {
             {results.col_a} vs {results.col_b} · n = {results.n}
           </p>
         </div>
-        <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
-          ← Back to suggestions
-        </button>
+        <div className="flex gap-2">
+          <ExportMenu
+            targetId="chi-square-results"
+            filename={`chi_square_${results.col_a}_vs_${results.col_b}`}
+            pdfTitle={`Chi-Square — ${results.col_a} vs ${results.col_b}`}
+            csvData={[{
+              col_a: results.col_a,
+              col_b: results.col_b,
+              n: results.n,
+              chi2_statistic: results.chi_square.statistic,
+              chi2_p_value: results.chi_square.p_value,
+              dof: results.chi_square.dof,
+              significant: results.chi_square.significant,
+              fisher_odds_ratio: results.fisher?.odds_ratio ?? "N/A",
+              fisher_p_value: results.fisher?.p_value ?? "N/A",
+            }]}
+          />
+          <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
+            ← Back to suggestions
+          </button>
+        </div>
       </div>
 
+      <div id="chi-square-results">
       {/* Assumption warning */}
       {results.assumption_warning && (
         <div className="p-3 rounded-xl border border-yellow-800 bg-yellow-950 mb-4">
@@ -71,6 +91,7 @@ export default function ChiSquareResults({ results, onBack }: Props) {
             )}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   )

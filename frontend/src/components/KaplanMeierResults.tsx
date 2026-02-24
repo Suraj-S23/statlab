@@ -4,6 +4,7 @@
 
 import type { KaplanMeierResults as Results } from "../types"
 import SurvivalCurve from "./charts/SurvivalCurve"
+import ExportMenu from "./ExportMenu"
 
 interface Props {
   results: Results
@@ -22,11 +23,27 @@ export default function KaplanMeierResults({ results, onBack }: Props) {
             Time: {results.time_col} · Event: {results.event_col} · n = {results.n}
           </p>
         </div>
-        <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
-          ← Back to suggestions
-        </button>
+        <div className="flex gap-2">
+          <ExportMenu
+            targetId="kaplan-meier-results"
+            filename={`kaplan_meier_${results.time_col}`}
+            pdfTitle={`Kaplan-Meier Survival — ${results.time_col}`}
+            csvData={results.groups
+              ? Object.entries(results.groups).map(([group, d]) => ({
+                  group,
+                  n: d.n,
+                  median_survival: d.median_survival ?? "Not reached",
+                }))
+              : [{ time_col: results.time_col, n: results.n, median_survival: results.median_survival ?? "Not reached" }]
+            }
+          />
+          <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
+            ← Back to suggestions
+          </button>
+        </div>
       </div>
 
+      <div id="kaplan-meier-results">
       <div className="p-4 rounded-xl border border-blue-800 bg-blue-950 mb-6">
         <p className="text-sm font-medium text-white">{results.interpretation}</p>
       </div>
@@ -63,6 +80,7 @@ export default function KaplanMeierResults({ results, onBack }: Props) {
           ))}
         </div>
       )}
+    </div>
     </div>
   )
 }
