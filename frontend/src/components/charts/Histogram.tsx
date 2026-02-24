@@ -11,14 +11,13 @@ interface Props {
 }
 
 export default function Histogram({ data, title }: Props) {
-  // Show at most 6 evenly-spaced labels to prevent overlap
   const interval = Math.max(0, Math.ceil(data.length / 6) - 1)
 
   return (
     <div style={{ marginTop: 4 }}>
       <p style={{ color: "var(--text-muted)", fontSize: 11, marginBottom: 8 }}>{title}</p>
-      <ResponsiveContainer width="100%" height={180}>
-        <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 44 }}>
+      <ResponsiveContainer width="100%" height={200}>
+        <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 56 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis
             dataKey="bin_label"
@@ -26,7 +25,8 @@ export default function Histogram({ data, title }: Props) {
             angle={-40}
             textAnchor="end"
             interval={interval}
-            height={50}
+            height={60}
+            tickMargin={4}
           />
           <YAxis tick={{ fill: "var(--text-muted)", fontSize: 10 }} width={28} />
           <Tooltip
