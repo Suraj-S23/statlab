@@ -1,79 +1,28 @@
 /**
- * DoseResponseResults — displays dose-response curve fitting results with chart.
+ * DoseResponseResults — IC50 curve display, theme-aware.
  */
-
 import type { DoseResponseResults as Results } from "../types"
-import DoseResponseChart from "./charts/DoseResponseChart"
-import ExportMenu from "./ExportMenu"
-
-interface Props {
-  results: Results
-  onBack: () => void
-}
-
+interface Props { results: Results; onBack: () => void }
 export default function DoseResponseResults({ results, onBack }: Props) {
   return (
-    <div className="mt-8">
-      <div className="flex items-center justify-between mb-6">
+    <div style={{ marginTop: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
         <div>
-          <h3 className="text-lg font-semibold text-white">Dose-Response / IC50</h3>
-          <p className="text-gray-400 text-sm mt-1">
-            {results.response_col} ~ {results.concentration_col} · n = {results.n}
-          </p>
+          <h3 style={{ color: "var(--text)", fontWeight: 600, fontSize: 14, margin: "0 0 3px" }}>Dose-Response / IC50</h3>
+          <p style={{ color: "var(--text-muted)", fontSize: 11, margin: 0, fontFamily: "var(--font-mono)" }}>{results.response_col} ~ {results.concentration_col} · n = {results.n}</p>
         </div>
-        <div className="flex gap-2">
-          <ExportMenu
-            targetId="dose-response-results"
-            filename={`dose_response_${results.response_col}`}
-            pdfTitle={`Dose-Response — ${results.response_col} ~ ${results.concentration_col}`}
-            csvData={[{
-              concentration_col: results.concentration_col,
-              response_col: results.response_col,
-              n: results.n,
-              ic50: results.ic50,
-              hill_slope: results.hill_slope,
-              bottom: results.bottom,
-              top: results.top,
-              r_squared: results.r_squared,
-            }]}
-          />
-          <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
-            ← Back to suggestions
-          </button>
-        </div>
+        <button onClick={onBack} style={{ background: "none", border: "1px solid var(--border)", borderRadius: 7, padding: "4px 12px", color: "var(--text-muted)", fontSize: 12, cursor: "pointer" }}>← Back</button>
       </div>
-
-      <div id="dose-response-results">
-      <div className={`p-4 rounded-xl border mb-6 ${results.r_squared > 0.9 ? "border-green-700 bg-green-950" : "border-yellow-700 bg-yellow-950"}`}>
-        <p className="text-sm font-medium text-white">{results.interpretation}</p>
+      <div style={{ padding: "12px 16px", borderRadius: 12, border: `1px solid ${results.r_squared > 0.9 ? "var(--accent)" : "#92400e"}`, background: results.r_squared > 0.9 ? "var(--accent-dim)" : "#1c0a00", marginBottom: 16 }}>
+        <p style={{ color: "var(--text)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>{results.interpretation}</p>
       </div>
-
-      <div className="p-4 rounded-xl border border-gray-800 bg-gray-900 mb-6">
-        <DoseResponseChart
-          curveX={results.curve_x}
-          curveY={results.curve_y}
-          dataX={results.data_x}
-          dataY={results.data_y}
-          xLabel={results.concentration_col}
-          yLabel={results.response_col}
-        />
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { label: "IC50", value: results.ic50 },
-          { label: "Hill Slope", value: results.hill_slope },
-          { label: "Bottom", value: results.bottom },
-          { label: "Top", value: results.top },
-          { label: "R²", value: results.r_squared },
-          { label: "n", value: results.n },
-        ].map(({ label, value }) => (
-          <div key={label} className="p-4 rounded-xl border border-gray-800 bg-gray-900">
-            <p className="text-gray-500 text-xs mb-1">{label}</p>
-            <p className="text-white font-semibold">{String(value)}</p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 8 }}>
+        {[["IC50", results.ic50], ["Hill Slope", results.hill_slope], ["Bottom", results.bottom], ["Top", results.top], ["R²", results.r_squared], ["n", results.n]].map(([lbl, val]) => (
+          <div key={String(lbl)} style={{ padding: "12px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface)" }}>
+            <p style={{ color: "var(--text-muted)", fontSize: 10, margin: "0 0 4px" }}>{lbl}</p>
+            <p style={{ color: "var(--text)", fontWeight: 600, fontSize: 13, margin: 0, fontFamily: "var(--font-mono)" }}>{String(val)}</p>
           </div>
         ))}
-      </div>
       </div>
     </div>
   )

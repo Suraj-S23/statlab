@@ -1,86 +1,45 @@
 /**
- * KaplanMeierResults — displays Kaplan-Meier survival analysis with step curve chart.
+ * KaplanMeierResults — survival analysis display, theme-aware.
  */
-
 import type { KaplanMeierResults as Results } from "../types"
-import SurvivalCurve from "./charts/SurvivalCurve"
-import ExportMenu from "./ExportMenu"
-
-interface Props {
-  results: Results
-  onBack: () => void
-}
-
+interface Props { results: Results; onBack: () => void }
 export default function KaplanMeierResults({ results, onBack }: Props) {
   const hasGroups = results.groups !== undefined
-
   return (
-    <div className="mt-8">
-      <div className="flex items-center justify-between mb-6">
+    <div style={{ marginTop: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
         <div>
-          <h3 className="text-lg font-semibold text-white">Kaplan-Meier Survival Analysis</h3>
-          <p className="text-gray-400 text-sm mt-1">
-            Time: {results.time_col} · Event: {results.event_col} · n = {results.n}
-          </p>
+          <h3 style={{ color: "var(--text)", fontWeight: 600, fontSize: 14, margin: "0 0 3px" }}>Kaplan-Meier Survival Analysis</h3>
+          <p style={{ color: "var(--text-muted)", fontSize: 11, margin: 0, fontFamily: "var(--font-mono)" }}>Time: {results.time_col} · Event: {results.event_col} · n = {results.n}</p>
         </div>
-        <div className="flex gap-2">
-          <ExportMenu
-            targetId="kaplan-meier-results"
-            filename={`kaplan_meier_${results.time_col}`}
-            pdfTitle={`Kaplan-Meier Survival — ${results.time_col}`}
-            csvData={results.groups
-              ? Object.entries(results.groups).map(([group, d]) => ({
-                  group,
-                  n: d.n,
-                  median_survival: d.median_survival ?? "Not reached",
-                }))
-              : [{ time_col: results.time_col, n: results.n, median_survival: results.median_survival ?? "Not reached" }]
-            }
-          />
-          <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
-            ← Back to suggestions
-          </button>
-        </div>
+        <button onClick={onBack} style={{ background: "none", border: "1px solid var(--border)", borderRadius: 7, padding: "4px 12px", color: "var(--text-muted)", fontSize: 12, cursor: "pointer" }}>← Back</button>
       </div>
-
-      <div id="kaplan-meier-results">
-      <div className="p-4 rounded-xl border border-blue-800 bg-blue-950 mb-6">
-        <p className="text-sm font-medium text-white">{results.interpretation}</p>
+      <div style={{ padding: "12px 16px", borderRadius: 12, border: "1px solid var(--accent)", background: "var(--accent-dim)", marginBottom: 16 }}>
+        <p style={{ color: "var(--text)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>{results.interpretation}</p>
       </div>
-
-      <div className="p-4 rounded-xl border border-gray-800 bg-gray-900 mb-6">
-        <SurvivalCurve curve={results.curve} groups={results.groups} />
-      </div>
-
       {!hasGroups && (
-        <div className="p-4 rounded-xl border border-gray-800 bg-gray-900">
-          <p className="text-gray-400 text-sm">Median survival time</p>
-          <p className="text-white font-semibold text-lg mt-1">
-            {results.median_survival ?? "Not reached"}
-          </p>
+        <div style={{ padding: "14px 18px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", display: "inline-block" }}>
+          <p style={{ color: "var(--text-muted)", fontSize: 11, margin: "0 0 4px" }}>Median survival time</p>
+          <p style={{ color: "var(--text)", fontWeight: 700, fontSize: 20, margin: 0, fontFamily: "var(--font-mono)" }}>{results.median_survival ?? "Not reached"}</p>
         </div>
       )}
-
       {hasGroups && results.groups && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 8 }}>
           {Object.entries(results.groups).map(([group, data]) => (
-            <div key={group} className="p-4 rounded-xl border border-gray-800 bg-gray-900">
-              <p className="text-blue-400 font-semibold mb-2">{group}</p>
-              <div className="space-y-1 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">n</span>
-                  <span className="text-gray-300">{data.n}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Median survival</span>
-                  <span className="text-gray-300">{data.median_survival ?? "Not reached"}</span>
-                </div>
+            <div key={group} style={{ padding: "14px 16px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)" }}>
+              <p style={{ color: "var(--accent-text)", fontWeight: 600, fontSize: 12, margin: "0 0 10px", fontFamily: "var(--font-mono)" }}>{group}</p>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                <span style={{ color: "var(--text-muted)", fontSize: 11 }}>n</span>
+                <span style={{ color: "var(--text)", fontSize: 11, fontFamily: "var(--font-mono)" }}>{data.n}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "var(--text-muted)", fontSize: 11 }}>Median survival</span>
+                <span style={{ color: "var(--text)", fontSize: 11, fontFamily: "var(--font-mono)" }}>{data.median_survival ?? "Not reached"}</span>
               </div>
             </div>
           ))}
         </div>
       )}
-    </div>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 /**
- * SuggestionPanel — displays recommended statistical tests as clickable cards.
+ * SuggestionPanel — recommended tests as interactive cards.
+ * Theme-aware via CSS variables.
  */
 
 import { useEffect, useState } from "react"
@@ -13,14 +14,14 @@ interface Props {
 }
 
 const TEST_ICONS: Record<string, string> = {
-  "Descriptive Statistics": "∑",
+  "Descriptive Statistics":           "∑",
   "Independent t-test / Mann-Whitney U": "t",
-  "One-Way ANOVA": "F",
+  "One-Way ANOVA":                    "F",
   "Correlation (Pearson / Spearman)": "r",
-  "Simple Linear Regression": "β",
+  "Simple Linear Regression":         "β",
   "Chi-Square / Fisher's Exact Test": "χ²",
-  "Dose-Response / IC50 Curve": "IC",
-  "Kaplan-Meier Survival Analysis": "S(t)",
+  "Dose-Response / IC50 Curve":       "IC",
+  "Kaplan-Meier Survival Analysis":   "S(t)",
 }
 
 export default function SuggestionPanel({ data, onSelectTest }: Props) {
@@ -28,41 +29,54 @@ export default function SuggestionPanel({ data, onSelectTest }: Props) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getSuggestions(data.columns)
-      .then(setSuggestions)
-      .finally(() => setLoading(false))
+    getSuggestions(data.columns).then(setSuggestions).finally(() => setLoading(false))
   }, [data.columns])
 
   if (loading) return (
-    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+    <div style={{
+      marginTop: 20,
+      display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10,
+    }}>
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-28 rounded-2xl bg-gray-900 border border-gray-800 animate-pulse" />
+        <div key={i} style={{
+          height: 90, borderRadius: 14,
+          background: "var(--surface)", border: "1px solid var(--border)",
+          animation: "pulse 1.5s ease-in-out infinite",
+          opacity: 0.6,
+        }} />
       ))}
+      <style>{`@keyframes pulse { 0%,100%{opacity:.6} 50%{opacity:.3} }`}</style>
     </div>
   )
 
-  const tier1 = suggestions.filter((s) => s.tier === 1)
-  const tier2 = suggestions.filter((s) => s.tier === 2)
+  const tier1 = suggestions.filter(s => s.tier === 1)
+  const tier2 = suggestions.filter(s => s.tier === 2)
 
   return (
-    <div className="mt-6">
-      <div className="mb-5">
-        <h2 className="text-white font-semibold text-base mb-1">Suggested analyses</h2>
-        <p className="text-gray-500 text-sm">Based on your data's column types</p>
+    <div style={{ marginTop: 16 }}>
+      <div style={{ marginBottom: 14 }}>
+        <h2 style={{ color: "var(--text)", fontWeight: 600, fontSize: 14, margin: "0 0 3px" }}>
+          Suggested analyses
+        </h2>
+        <p style={{ color: "var(--text-muted)", fontSize: 12, margin: 0 }}>
+          Based on your data's column types
+        </p>
       </div>
 
-      {/* Tier 1 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 8, marginBottom: 10 }}>
         {tier1.map((s, i) => (
           <SuggestionCard key={s.test} suggestion={s} onClick={() => onSelectTest(s.test)} delay={i * 0.05} />
         ))}
       </div>
 
-      {/* Tier 2 */}
       {tier2.length > 0 && (
         <>
-          <p className="text-gray-600 text-xs font-medium uppercase tracking-wider mb-3">Advanced</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <p style={{
+            color: "var(--text-muted)", fontSize: 9, fontWeight: 600,
+            textTransform: "uppercase", letterSpacing: "0.1em",
+            margin: "12px 0 8px", fontFamily: "var(--font-mono)",
+          }}>Advanced</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 8 }}>
             {tier2.map((s, i) => (
               <SuggestionCard key={s.test} suggestion={s} onClick={() => onSelectTest(s.test)} delay={i * 0.05} dim />
             ))}
@@ -74,47 +88,63 @@ export default function SuggestionPanel({ data, onSelectTest }: Props) {
 }
 
 function SuggestionCard({
-  suggestion,
-  onClick,
-  delay,
-  dim,
+  suggestion, onClick, delay, dim,
 }: {
-  suggestion: Suggestion
-  onClick: () => void
-  delay: number
-  dim?: boolean
+  suggestion: Suggestion; onClick: () => void; delay: number; dim?: boolean
 }) {
+  const [hovered, setHovered] = useState(false)
   const icon = TEST_ICONS[suggestion.test] ?? "→"
 
   return (
     <motion.button
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.2 }}
-      whileHover={{ y: -2, transition: { duration: 0.15 } }}
+      whileHover={{ y: -2 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className={`text-left p-4 rounded-2xl border transition-colors group w-full
-        ${dim
-          ? "border-gray-800 bg-gray-900 hover:border-gray-600 hover:bg-gray-800"
-          : "border-gray-800 bg-gray-900 hover:border-blue-800 hover:bg-blue-950"
-        }`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        textAlign: "left", padding: "13px 14px",
+        borderRadius: 12,
+        border: `1px solid ${hovered && !dim ? "var(--accent)" : "var(--border)"}`,
+        background: hovered
+          ? (dim ? "var(--card-hover)" : "var(--accent-dim)")
+          : "var(--surface)",
+        cursor: "pointer", transition: "all 0.15s",
+        display: "flex", gap: 11, alignItems: "flex-start",
+        opacity: dim ? 0.75 : 1,
+        width: "100%",
+      }}
     >
-      <div className="flex items-start gap-3">
-        <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 transition-colors
-          ${dim
-            ? "bg-gray-800 text-gray-500 group-hover:bg-gray-700 group-hover:text-gray-300"
-            : "bg-gray-800 text-blue-400 group-hover:bg-blue-900 group-hover:text-blue-300"
-          }`}>
-          {icon}
-        </div>
-        <div className="min-w-0">
-          <p className={`font-semibold text-sm mb-0.5 transition-colors
-            ${dim ? "text-gray-400 group-hover:text-gray-200" : "text-white"}`}>
-            {suggestion.test}
-          </p>
-          <p className="text-gray-600 text-xs leading-relaxed line-clamp-2">{suggestion.reason}</p>
-        </div>
+      <div style={{
+        width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: hovered && !dim ? "var(--accent-dim)" : "var(--bg-alt)",
+        color: hovered && !dim ? "var(--accent-text)" : "var(--text-muted)",
+        fontSize: 11, fontWeight: 700,
+        transition: "all 0.15s",
+        fontFamily: "var(--font-mono)",
+        border: "1px solid var(--border)",
+      }}>
+        {icon}
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <p style={{
+          color: "var(--text)", fontWeight: 600, fontSize: 12, margin: "0 0 3px",
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        }}>
+          {suggestion.test}
+        </p>
+        <p style={{
+          color: "var(--text-muted)", fontSize: 11, margin: 0,
+          lineHeight: 1.5,
+          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+        }}>
+          {suggestion.reason}
+        </p>
       </div>
     </motion.button>
   )

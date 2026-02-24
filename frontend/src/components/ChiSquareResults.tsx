@@ -1,108 +1,50 @@
 /**
- * ChiSquareResults — displays chi-square and Fisher's exact test results
- * for association between two categorical columns.
+ * ChiSquareResults — chi-square/Fisher display, theme-aware.
  */
-
 import type { ChiSquareResults as Results } from "../types"
-import ExportMenu from "./ExportMenu"
-
-interface Props {
-  results: Results
-  onBack: () => void
+interface Props { results: Results; onBack: () => void }
+function Badge({ significant }: { significant: boolean }) {
+  return <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: significant ? "#052e16" : "var(--bg-alt)", color: significant ? "#4ade80" : "var(--text-muted)", fontFamily: "var(--font-mono)" }}>{significant ? "Yes" : "No"}</span>
 }
-
 export default function ChiSquareResults({ results, onBack }: Props) {
   return (
-    <div className="mt-8">
-      <div className="flex items-center justify-between mb-6">
+    <div style={{ marginTop: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
         <div>
-          <h3 className="text-lg font-semibold text-white">Chi-Square / Fisher's Exact Test</h3>
-          <p className="text-gray-400 text-sm mt-1">
-            {results.col_a} vs {results.col_b} · n = {results.n}
-          </p>
+          <h3 style={{ color: "var(--text)", fontWeight: 600, fontSize: 14, margin: "0 0 3px" }}>Chi-Square / Fisher's Exact Test</h3>
+          <p style={{ color: "var(--text-muted)", fontSize: 11, margin: 0, fontFamily: "var(--font-mono)" }}>{results.col_a} vs {results.col_b} · n = {results.n}</p>
         </div>
-        <div className="flex gap-2">
-          <ExportMenu
-            targetId="chi-square-results"
-            filename={`chi_square_${results.col_a}_vs_${results.col_b}`}
-            pdfTitle={`Chi-Square — ${results.col_a} vs ${results.col_b}`}
-            csvData={[{
-              col_a: results.col_a,
-              col_b: results.col_b,
-              n: results.n,
-              chi2_statistic: results.chi_square.statistic,
-              chi2_p_value: results.chi_square.p_value,
-              dof: results.chi_square.dof,
-              significant: results.chi_square.significant,
-              fisher_odds_ratio: results.fisher?.odds_ratio ?? "N/A",
-              fisher_p_value: results.fisher?.p_value ?? "N/A",
-            }]}
-          />
-          <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
-            ← Back to suggestions
-          </button>
-        </div>
+        <button onClick={onBack} style={{ background: "none", border: "1px solid var(--border)", borderRadius: 7, padding: "4px 12px", color: "var(--text-muted)", fontSize: 12, cursor: "pointer" }}>← Back</button>
       </div>
-
-      <div id="chi-square-results">
-      {/* Assumption warning */}
       {results.assumption_warning && (
-        <div className="p-3 rounded-xl border border-yellow-800 bg-yellow-950 mb-4">
-          <p className="text-yellow-400 text-sm">⚠ {results.assumption_warning}</p>
+        <div style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid #92400e", background: "#451a03", marginBottom: 12 }}>
+          <p style={{ color: "#f59e0b", fontSize: 12, margin: 0 }}>⚠ {results.assumption_warning}</p>
         </div>
       )}
-
-      {/* Interpretation */}
-      <div className={`p-4 rounded-xl border mb-6 ${
-        results.chi_square.significant ? "border-green-700 bg-green-950" : "border-gray-700 bg-gray-900"
-      }`}>
-        <p className="text-sm font-medium text-white">{results.interpretation}</p>
+      <div style={{ padding: "12px 16px", borderRadius: 12, border: `1px solid ${results.chi_square.significant ? "var(--accent)" : "var(--border)"}`, background: results.chi_square.significant ? "var(--accent-dim)" : "var(--surface)", marginBottom: 16 }}>
+        <p style={{ color: "var(--text)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>{results.interpretation}</p>
       </div>
-
-      {/* Results table */}
-      <div className="overflow-x-auto rounded-xl border border-gray-800">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-gray-900 text-gray-400 uppercase text-xs">
-            <tr>
-              <th className="px-4 py-3">Test</th>
-              <th className="px-4 py-3">Statistic</th>
-              <th className="px-4 py-3">p-value</th>
-              <th className="px-4 py-3">Significant</th>
-            </tr>
-          </thead>
+      <div style={{ overflowX: "auto", borderRadius: 12, border: "1px solid var(--border)" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+          <thead><tr style={{ background: "var(--surface)" }}>
+            {["Test", "Statistic", "p-value", "Significant"].map(h => <th key={h} style={{ padding: "10px 14px", textAlign: "left", color: "var(--text-muted)", fontWeight: 600, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-mono)" }}>{h}</th>)}
+          </tr></thead>
           <tbody>
-            <tr className="border-t border-gray-800 hover:bg-gray-900">
-              <td className="px-4 py-3 text-gray-300">Chi-Square (df={results.chi_square.dof})</td>
-              <td className="px-4 py-3 text-gray-300">χ² = {results.chi_square.statistic}</td>
-              <td className="px-4 py-3 text-gray-300">{results.chi_square.p_value}</td>
-              <td className="px-4 py-3">
-                <Badge significant={results.chi_square.significant} />
-              </td>
+            <tr style={{ borderTop: "1px solid var(--border)" }}>
+              <td style={{ padding: "9px 14px", color: "var(--text)", fontSize: 12 }}>Chi-Square (df={results.chi_square.dof})</td>
+              <td style={{ padding: "9px 14px", color: "var(--text)", fontSize: 12, fontFamily: "var(--font-mono)" }}>χ² = {results.chi_square.statistic}</td>
+              <td style={{ padding: "9px 14px", color: "var(--text)", fontSize: 12, fontFamily: "var(--font-mono)" }}>{results.chi_square.p_value}</td>
+              <td style={{ padding: "9px 14px" }}><Badge significant={results.chi_square.significant} /></td>
             </tr>
-            {results.fisher && (
-              <tr className="border-t border-gray-800 hover:bg-gray-900">
-                <td className="px-4 py-3 text-gray-300">Fisher's Exact</td>
-                <td className="px-4 py-3 text-gray-300">OR = {results.fisher.odds_ratio}</td>
-                <td className="px-4 py-3 text-gray-300">{results.fisher.p_value}</td>
-                <td className="px-4 py-3">
-                  <Badge significant={results.fisher.significant} />
-                </td>
-              </tr>
-            )}
+            {results.fisher && <tr style={{ borderTop: "1px solid var(--border)" }}>
+              <td style={{ padding: "9px 14px", color: "var(--text)", fontSize: 12 }}>Fisher's Exact</td>
+              <td style={{ padding: "9px 14px", color: "var(--text)", fontSize: 12, fontFamily: "var(--font-mono)" }}>OR = {results.fisher.odds_ratio}</td>
+              <td style={{ padding: "9px 14px", color: "var(--text)", fontSize: 12, fontFamily: "var(--font-mono)" }}>{results.fisher.p_value}</td>
+              <td style={{ padding: "9px 14px" }}><Badge significant={results.fisher.significant} /></td>
+            </tr>}
           </tbody>
         </table>
       </div>
-      </div>
     </div>
-  )
-}
-
-function Badge({ significant }: { significant: boolean }) {
-  return (
-    <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-      significant ? "bg-green-900 text-green-300" : "bg-gray-800 text-gray-500"
-    }`}>
-      {significant ? "Yes" : "No"}
-    </span>
   )
 }

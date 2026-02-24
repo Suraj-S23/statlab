@@ -1,131 +1,63 @@
 /**
- * AnovaResults — displays one-way ANOVA results with group bar chart.
+ * AnovaResults — ANOVA and Kruskal-Wallis display, theme-aware.
  */
-
 import type { AnovaResults as Results } from "../types"
-import GroupBarChart from "./charts/GroupBarChart"
-import ExportMenu from "./ExportMenu"
-
-interface Props {
-  results: Results
-  onBack: () => void
+interface Props { results: Results; onBack: () => void }
+function Badge({ significant }: { significant: boolean }) {
+  return <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: significant ? "#052e16" : "var(--bg-alt)", color: significant ? "#4ade80" : "var(--text-muted)", fontFamily: "var(--font-mono)" }}>{significant ? "Yes" : "No"}</span>
 }
-
 export default function AnovaResults({ results, onBack }: Props) {
   const groupNames = Object.keys(results.groups)
-
-  const chartData = groupNames.map((g) => ({
-    name: g,
-    mean: results.groups[g].mean,
-    std: results.groups[g].std,
-    n: results.groups[g].n,
-  }))
-
+  const significant = results.anova.significant || results.kruskal_wallis.significant
   return (
-    <div className="mt-8">
-      <div className="flex items-center justify-between mb-6">
+    <div style={{ marginTop: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
         <div>
-          <h3 className="text-lg font-semibold text-white">One-Way ANOVA</h3>
-          <p className="text-gray-400 text-sm mt-1">
-            {results.value_column} across {results.n_groups} groups of {results.group_column}
-          </p>
+          <h3 style={{ color: "var(--text)", fontWeight: 600, fontSize: 14, margin: "0 0 3px" }}>One-Way ANOVA</h3>
+          <p style={{ color: "var(--text-muted)", fontSize: 11, margin: 0, fontFamily: "var(--font-mono)" }}>{results.value_column} by {results.group_column} · {results.n_groups} groups</p>
         </div>
-        <div className="flex gap-2">
-          <ExportMenu
-            targetId="anova-results"
-            filename={`anova_${results.value_column}_by_${results.group_column}`}
-            pdfTitle={`One-Way ANOVA — ${results.value_column} by ${results.group_column}`}
-            csvData={Object.entries(results.groups).map(([group, g]) => ({
-              group,
-              n: g.n,
-              mean: g.mean,
-              median: g.median,
-              std: g.std,
-            }))}
-          />
-          <button onClick={onBack} className="text-sm text-gray-400 hover:text-white border border-gray-700 px-4 py-2 rounded-lg transition-all">
-            ← Back to suggestions
-          </button>
-        </div>
+        <button onClick={onBack} style={{ background: "none", border: "1px solid var(--border)", borderRadius: 7, padding: "4px 12px", color: "var(--text-muted)", fontSize: 12, cursor: "pointer" }}>← Back</button>
       </div>
-
-      <div id="anova-results">
-      {/* Interpretation */}
-      <div className={`p-4 rounded-xl border mb-4 ${results.anova.significant ? "border-green-700 bg-green-950" : "border-gray-700 bg-gray-900"}`}>
-        <p className="text-sm font-medium text-white">{results.interpretation}</p>
+      <div style={{ padding: "12px 16px", borderRadius: 12, border: `1px solid ${significant ? "var(--accent)" : "var(--border)"}`, background: significant ? "var(--accent-dim)" : "var(--surface)", marginBottom: 16 }}>
+        <p style={{ color: "var(--text)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>{results.interpretation}</p>
       </div>
-
-      {/* Skipped groups warning */}
-      {results.skipped_groups.length > 0 && (
-        <div className="p-3 rounded-xl border border-yellow-800 bg-yellow-950 mb-4">
-          <p className="text-yellow-400 text-sm">
-            ⚠ Excluded due to insufficient observations (&lt;3):{" "}
-            <span className="font-medium">{results.skipped_groups.join(", ")}</span>
-          </p>
-        </div>
-      )}
-
-      {/* Chart */}
-      <div className="p-4 rounded-xl border border-gray-800 bg-gray-900 mb-6">
-        <GroupBarChart groups={chartData} valueLabel={results.value_column} />
-      </div>
-
-      {/* Per-group summaries */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-        {groupNames.map((group) => {
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 8, marginBottom: 16 }}>
+        {groupNames.map(group => {
           const g = results.groups[group]
           return (
-            <div key={group} className="p-4 rounded-xl border border-gray-800 bg-gray-900">
-              <p className="text-blue-400 font-semibold mb-3 truncate">{group}</p>
-              <div className="space-y-1 text-sm">
-                {[["N", g.n], ["Mean", g.mean], ["Median", g.median], ["Std Dev", g.std]].map(([l, v]) => (
-                  <div key={String(l)} className="flex justify-between">
-                    <span className="text-gray-500">{l}</span>
-                    <span className="text-gray-300">{String(v)}</span>
-                  </div>
-                ))}
-              </div>
+            <div key={group} style={{ padding: "12px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface)" }}>
+              <p style={{ color: "var(--accent-text)", fontWeight: 600, fontSize: 11, margin: "0 0 8px", fontFamily: "var(--font-mono)" }}>{group}</p>
+              {[["n", g.n], ["Mean", g.mean], ["Std", g.std]].map(([lbl, val]) => (
+                <div key={String(lbl)} style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                  <span style={{ color: "var(--text-muted)", fontSize: 10 }}>{lbl}</span>
+                  <span style={{ color: "var(--text)", fontSize: 10, fontFamily: "var(--font-mono)" }}>{String(val)}</span>
+                </div>
+              ))}
             </div>
           )
         })}
       </div>
-
-      {/* Test table */}
-      <div className="overflow-x-auto rounded-xl border border-gray-800">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-gray-900 text-gray-400 uppercase text-xs">
-            <tr>
-              <th className="px-4 py-3">Test</th>
-              <th className="px-4 py-3">Statistic</th>
-              <th className="px-4 py-3">p-value</th>
-              <th className="px-4 py-3">Significant</th>
-            </tr>
-          </thead>
+      <div style={{ overflowX: "auto", borderRadius: 12, border: "1px solid var(--border)" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+          <thead><tr style={{ background: "var(--surface)" }}>
+            {["Test", "Statistic", "p-value", "Significant"].map(h => <th key={h} style={{ padding: "10px 14px", textAlign: "left", color: "var(--text-muted)", fontWeight: 600, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-mono)" }}>{h}</th>)}
+          </tr></thead>
           <tbody>
-            <tr className="border-t border-gray-800 hover:bg-gray-900">
-              <td className="px-4 py-3 text-gray-300">One-Way ANOVA</td>
-              <td className="px-4 py-3 text-gray-300">F = {results.anova.f_statistic}</td>
-              <td className="px-4 py-3 text-gray-300">{results.anova.p_value}</td>
-              <td className="px-4 py-3"><Badge significant={results.anova.significant} /></td>
+            <tr style={{ borderTop: "1px solid var(--border)" }}>
+              <td style={{ padding: "9px 14px", color: "var(--text)", fontSize: 12 }}>One-Way ANOVA</td>
+              <td style={{ padding: "9px 14px", color: "var(--text)", fontSize: 12, fontFamily: "var(--font-mono)" }}>F = {results.anova.f_statistic}</td>
+              <td style={{ padding: "9px 14px", color: "var(--text)", fontSize: 12, fontFamily: "var(--font-mono)" }}>{results.anova.p_value}</td>
+              <td style={{ padding: "9px 14px" }}><Badge significant={results.anova.significant} /></td>
             </tr>
-            <tr className="border-t border-gray-800 hover:bg-gray-900">
-              <td className="px-4 py-3 text-gray-300">Kruskal-Wallis</td>
-              <td className="px-4 py-3 text-gray-300">H = {results.kruskal_wallis.h_statistic}</td>
-              <td className="px-4 py-3 text-gray-300">{results.kruskal_wallis.p_value}</td>
-              <td className="px-4 py-3"><Badge significant={results.kruskal_wallis.significant} /></td>
+            <tr style={{ borderTop: "1px solid var(--border)" }}>
+              <td style={{ padding: "9px 14px", color: "var(--text)", fontSize: 12 }}>Kruskal-Wallis</td>
+              <td style={{ padding: "9px 14px", color: "var(--text)", fontSize: 12, fontFamily: "var(--font-mono)" }}>H = {results.kruskal_wallis.h_statistic}</td>
+              <td style={{ padding: "9px 14px", color: "var(--text)", fontSize: 12, fontFamily: "var(--font-mono)" }}>{results.kruskal_wallis.p_value}</td>
+              <td style={{ padding: "9px 14px" }}><Badge significant={results.kruskal_wallis.significant} /></td>
             </tr>
           </tbody>
         </table>
-        </div>
       </div>
     </div>
-  )
-}
-
-function Badge({ significant }: { significant: boolean }) {
-  return (
-    <span className={`text-xs font-medium px-2 py-1 rounded-full ${significant ? "bg-green-900 text-green-300" : "bg-gray-800 text-gray-500"}`}>
-      {significant ? "Yes" : "No"}
-    </span>
   )
 }

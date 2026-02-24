@@ -1,33 +1,78 @@
 @import "tailwindcss";
 
-@layer base {
-  html, body {
-    background-color: #030712;
-    color: #f9fafb;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+/* ── Theme variables ──────────────────────────────────────────── */
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #111827;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #374151;
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #4b5563;
-  }
-
-  /* Selection colour */
-  ::selection {
-    background: #1d4ed8;
-    color: #fff;
-  }
+:root {
+  /* Obsidian (dark) — default */
+  --bg:           #080c10;
+  --bg-alt:       #060a0e;
+  --surface:      #0e1419;
+  --border:       #1a2332;
+  --border-muted: #101e2c;
+  --accent:       #2dd4bf;
+  --accent-dim:   #0d3d38;
+  --accent-text:  #2dd4bf;
+  --text:         #e2e8f0;
+  --text-muted:   #4a6680;
+  --text-dim:     #1e2d3d;
+  --badge-numeric-bg:   #0d3d38;
+  --badge-numeric-text: #2dd4bf;
+  --badge-cat-bg:       #1e1040;
+  --badge-cat-text:     #a78bfa;
+  --badge-bool-bg:      #052e16;
+  --badge-bool-text:    #4ade80;
+  --card-hover:   #111922;
+  --nav-bg:       rgba(8,12,16,0.85);
+  --shadow:       0 0 0 1px #1a2332;
+  --font-mono:    'IBM Plex Mono', monospace;
+  --font-sans:    'IBM Plex Sans', system-ui, sans-serif;
+  --plot-bg:      #060a0e;
 }
+
+[data-theme="arctic"] {
+  /* Arctic Light */
+  --bg:           #f8fafc;
+  --bg-alt:       #eef6ff;
+  --surface:      #ffffff;
+  --border:       #e2e8f0;
+  --border-muted: #f1f5f9;
+  --accent:       #0369a1;
+  --accent-dim:   #e0f2fe;
+  --accent-text:  #0369a1;
+  --text:         #0f172a;
+  --text-muted:   #64748b;
+  --text-dim:     #cbd5e1;
+  --badge-numeric-bg:   #e0f2fe;
+  --badge-numeric-text: #0369a1;
+  --badge-cat-bg:       #ede9fe;
+  --badge-cat-text:     #6d28d9;
+  --badge-bool-bg:      #dcfce7;
+  --badge-bool-text:    #166534;
+  --card-hover:   #f0f9ff;
+  --nav-bg:       rgba(248,250,252,0.85);
+  --shadow:       0 1px 3px rgba(0,0,0,0.08);
+  --plot-bg:      #eef6ff;
+}
+
+/* ── Base ─────────────────────────────────────────────────────── */
+
+html, body, #root {
+  min-height: 100vh;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s, color 0.25s;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+::selection { background: var(--accent); color: var(--bg); }
+
+/* ── Monospace utility ────────────────────────────────────────── */
+.font-mono { font-family: var(--font-mono) !important; }
