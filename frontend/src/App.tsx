@@ -355,7 +355,6 @@ function flattenForCsv(results: AnyResults): Record<string, unknown>[] {
 
 
 export default function App() {
-  const { isDark } = useTheme()
   const { t } = useTranslation()
   const [data, setData] = useState<UploadResponse | null>(null)
   const [selectedTest, setSelectedTest] = useState<string | null>(null)
