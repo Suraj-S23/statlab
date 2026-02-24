@@ -56,7 +56,7 @@ export default function DescriptiveResults({ results, onBack }: Props) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
         {columns.map(col => (
           results[col].histogram?.length > 0 && (
-            <div key={col} style={{ padding: "14px 16px 4px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", overflow: "visible" }}>
+            <div key={col} style={{ padding: "14px 16px 4px 16px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", overflow: "visible", paddingRight: 32 }}>
               <Histogram data={results[col].histogram} title={`${t("descriptive.distribution")} — ${col}`} />
             </div>
           )

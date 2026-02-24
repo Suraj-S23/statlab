@@ -19,7 +19,7 @@ export default function Histogram({ data, title }: Props) {
       <p style={{ color: "var(--text-muted)", fontSize: 11, marginBottom: 8 }}>{title}</p>
       <div className="histogram-chart">
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 60 }}>
+          <BarChart data={data} margin={{ top: 4, right: 24, left: 0, bottom: 60 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
             <XAxis
               dataKey="bin_label"
