@@ -6,11 +6,7 @@ interface Props { results: Results; onBack: () => void }
 
 function Badge({ significant }: { significant: boolean }) {
   const { t } = useTranslation()
-  return (
-    <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: significant ? "#052e16" : "var(--bg-alt)", color: significant ? "#4ade80" : "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
-      {significant ? t("common.yes") : t("common.no")}
-    </span>
-  )
+  return <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: significant ? "#052e16" : "var(--bg-alt)", color: significant ? "#4ade80" : "var(--text-muted)", fontFamily: "var(--font-mono)" }}>{significant ? t("common.yes") : t("common.no")}</span>
 }
 
 export default function CorrelationResults({ results, onBack }: Props) {
@@ -27,17 +23,11 @@ export default function CorrelationResults({ results, onBack }: Props) {
       <div style={{ padding: "12px 16px", borderRadius: 12, border: `1px solid ${results.pearson.significant ? "var(--accent)" : "var(--border)"}`, background: results.pearson.significant ? "var(--accent-dim)" : "var(--surface)", marginBottom: 16 }}>
         <p style={{ color: "var(--text)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>{results.interpretation}</p>
       </div>
-
-      {results.scatter?.length > 0 && (
-        <ScatterPlot data={results.scatter} xLabel={results.col_a} yLabel={results.col_b} />
-      )}
-
+      {results.scatter?.length > 0 && <ScatterPlot data={results.scatter} xLabel={results.col_a} yLabel={results.col_b} />}
       <div style={{ marginTop: 16, overflowX: "auto", borderRadius: 12, border: "1px solid var(--border)" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
           <thead><tr style={{ background: "var(--surface)" }}>
-            {[t("common.test"), t("correlation.coefficient"), t("common.pValue"), t("common.significant")].map(h => (
-              <th key={h} style={{ padding: "10px 14px", textAlign: "left", color: "var(--text-muted)", fontWeight: 600, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-mono)" }}>{h}</th>
-            ))}
+            {[t("common.test"), t("common.coefficient"), t("common.pValue"), t("common.significant")].map(h => <th key={h} style={{ padding: "10px 14px", textAlign: "left", color: "var(--text-muted)", fontWeight: 600, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-mono)" }}>{h}</th>)}
           </tr></thead>
           <tbody>
             <tr style={{ borderTop: "1px solid var(--border)" }}>

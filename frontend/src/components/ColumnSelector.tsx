@@ -1,6 +1,7 @@
 /**
  * ColumnSelector — multi-select column picker filtered by type.
- * Theme-aware via CSS variables.
+ * For categorical columns, filters out high-cardinality columns (>20 unique values)
+ * that would be meaningless in tests like chi-square.
  */
 
 import { useState } from "react"
@@ -16,9 +17,18 @@ interface Props {
   maxSelect?: number
 }
 
+const MAX_CATEGORICAL_UNIQUE = 20
+
 export default function ColumnSelector({ columns, filterType, onConfirm, onBack, minSelect = 1, maxSelect }: Props) {
   const [selected, setSelected] = useState<string[]>([])
-  const filtered = columns.filter(c => c.type === filterType)
+
+  const filtered = columns.filter(c => {
+    if (c.type !== filterType) return false
+    // For categorical, exclude high-cardinality columns like IDs
+    if (filterType === "categorical" && c.unique_count > MAX_CATEGORICAL_UNIQUE) return false
+    return true
+  })
+
   const canConfirm = selected.length >= minSelect && (!maxSelect || selected.length <= maxSelect)
 
   const toggle = (name: string) => {
@@ -39,6 +49,12 @@ export default function ColumnSelector({ columns, filterType, onConfirm, onBack,
         Select {maxSelect === 1 ? "one" : maxSelect ? `up to ${maxSelect}` : "any"} {filterType} column{maxSelect !== 1 ? "s" : ""}.
         {minSelect > 1 && ` Minimum ${minSelect}.`}
       </p>
+
+      {filtered.length === 0 && (
+        <p style={{ color: "#f59e0b", fontSize: 12, marginBottom: 16 }}>
+          No suitable {filterType} columns found. For chi-square, columns with more than {MAX_CATEGORICAL_UNIQUE} unique values are excluded.
+        </p>
+      )}
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 24 }}>
         {filtered.map(col => {

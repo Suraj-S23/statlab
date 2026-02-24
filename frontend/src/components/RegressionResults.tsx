@@ -6,6 +6,16 @@ interface Props { results: Results; onBack: () => void }
 
 export default function RegressionResults({ results, onBack }: Props) {
   const { t } = useTranslation()
+  const statCards = [
+    [t("regression.slope"),     results.slope],
+    [t("regression.intercept"), results.intercept],
+    [t("regression.r2"),        results.r_squared],
+    [t("common.pValue"),        results.p_value],
+    [t("regression.r"),         results.r_value],
+    [t("regression.stdErr"),    results.std_err],
+    [t("common.n"),             results.n],
+    [t("common.significant"),   results.significant ? t("common.yes") : t("common.no")],
+  ]
   return (
     <div style={{ marginTop: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
@@ -19,26 +29,14 @@ export default function RegressionResults({ results, onBack }: Props) {
         <p style={{ color: "var(--text)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>{results.interpretation}</p>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 8, marginBottom: 8 }}>
-        {[
-          [t("regression.slope"), results.slope],
-          [t("regression.intercept"), results.intercept],
-          [t("regression.r2"), results.r_squared],
-          [t("common.pValue"), results.p_value],
-          [t("regression.r"), results.r_value],
-          [t("regression.stdErr"), results.std_err],
-          [t("common.n"), results.n],
-          [t("common.significant"), results.significant ? t("common.yes") : t("common.no")],
-        ].map(([lbl, val]) => (
+        {statCards.map(([lbl, val]) => (
           <div key={String(lbl)} style={{ padding: "12px 14px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface)" }}>
             <p style={{ color: "var(--text-muted)", fontSize: 10, margin: "0 0 4px" }}>{lbl}</p>
             <p style={{ color: "var(--text)", fontWeight: 600, fontSize: 13, margin: 0, fontFamily: "var(--font-mono)" }}>{String(val)}</p>
           </div>
         ))}
       </div>
-
-      {results.scatter?.length > 0 && (
-        <ScatterPlot data={results.scatter} xLabel={results.predictor} yLabel={results.outcome} line={results.line} />
-      )}
+      {results.scatter?.length > 0 && <ScatterPlot data={results.scatter} xLabel={results.predictor} yLabel={results.outcome} line={results.line} />}
     </div>
   )
 }

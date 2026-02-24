@@ -7,6 +7,7 @@ export interface Column {
   name: string
   type: "numeric" | "categorical" | "boolean"
   missing: number
+  unique_count: number
 }
 
 export interface UploadResponse {
@@ -119,12 +120,6 @@ export interface RegressionResults {
   line: ScatterPoint[]
 }
 
-export interface ContingencyTable {
-  row_labels: string[]
-  col_labels: string[]
-  values: number[][]
-}
-
 export interface ChiSquareResults {
   col_a: string
   col_b: string
@@ -133,7 +128,6 @@ export interface ChiSquareResults {
   fisher: { odds_ratio: number; p_value: string; significant: boolean } | null
   assumption_warning: string | null
   interpretation: string
-  contingency_table: ContingencyTable
 }
 
 export interface DoseResponseResults {
