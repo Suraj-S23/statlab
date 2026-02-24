@@ -1,107 +1,106 @@
-import html2canvas from "html2canvas"
 import jsPDF from "jspdf"
 
-// Resolve CSS variables to safe hex values for html2canvas
-function fixOklch(el: HTMLElement) {
-  const all = el.querySelectorAll("*")
-  all.forEach((node) => {
-    const e = node as HTMLElement
-    const s = window.getComputedStyle(e)
-    if (s.backgroundColor.includes("oklch")) e.style.backgroundColor = "#030712"
-    if (s.color.includes("oklch")) e.style.color = "#d1d5db"
-    if (s.borderColor.includes("oklch")) e.style.borderColor = "#374151"
+// Serialize the SVG inside chart-export-zone to a high-res PNG data URL
+async function chartToPngDataUrl(bgColor: string, scale = 3): Promise<string | null> {
+  const zone = document.getElementById("chart-export-zone")
+  if (!zone) return null
+
+  const svg = zone.querySelector("svg")
+  if (!svg) return null
+
+  const rect = zone.getBoundingClientRect()
+  const w = rect.width || svg.clientWidth || 800
+  const h = rect.height || svg.clientHeight || 400
+
+  // Clone SVG and inline computed styles for text/axes
+  const clone = svg.cloneNode(true) as SVGSVGElement
+  clone.setAttribute("width", String(w))
+  clone.setAttribute("height", String(h))
+  clone.style.background = bgColor
+
+  // Inline font styles on all text nodes
+  svg.querySelectorAll("text, tspan").forEach((orig, i) => {
+    const cloned = clone.querySelectorAll("text, tspan")[i] as SVGElement
+    if (!cloned) return
+    const cs = window.getComputedStyle(orig)
+    cloned.style.fontFamily = cs.fontFamily || "monospace"
+    cloned.style.fontSize = cs.fontSize || "11px"
+    cloned.style.fill = bgColor === "#ffffff" ? "#374151" : (cs.fill || "#9ca3af")
+  })
+
+  const serializer = new XMLSerializer()
+  const svgStr = serializer.serializeToString(clone)
+  const svgBlob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" })
+  const url = URL.createObjectURL(svgBlob)
+
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement("canvas")
+      canvas.width = w * scale
+      canvas.height = h * scale
+      const ctx = canvas.getContext("2d")!
+      ctx.scale(scale, scale)
+      ctx.fillStyle = bgColor
+      ctx.fillRect(0, 0, w, h)
+      ctx.drawImage(img, 0, 0, w, h)
+      URL.revokeObjectURL(url)
+      resolve(canvas.toDataURL("image/png"))
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(null) }
+    img.src = url
   })
 }
 
 export function useExport() {
-  // Capture the chart zone only as PNG
   const exportPNG = async (filename: string) => {
-    const element = document.getElementById("chart-export-zone")
-    if (!element) { console.error("chart-export-zone not found"); return }
-    try {
-      const canvas = await html2canvas(element, {
-        backgroundColor: "#030712",
-        scale: 3,
-        useCORS: true,
-        onclone: (_doc, el) => fixOklch(el),
-      })
-      const link = document.createElement("a")
-      link.download = `${filename}.png`
-      link.href = canvas.toDataURL("image/png")
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    } catch (e) { console.error("PNG export error:", e) }
+    const dataUrl = await chartToPngDataUrl("#0f172a", 3)
+    if (!dataUrl) { console.error("chart-export-zone or SVG not found"); return }
+    const link = document.createElement("a")
+    link.download = `${filename}.png`
+    link.href = dataUrl
+    link.click()
   }
 
-  // Publication-quality PDF: white background, chart + title, clean typography
   const exportPublicationPDF = async (filename: string, title: string, subtitle: string) => {
-    const element = document.getElementById("chart-export-zone")
-    if (!element) { console.error("chart-export-zone not found"); return }
-    try {
-      const canvas = await html2canvas(element, {
-        backgroundColor: "#ffffff",
-        scale: 3,
-        useCORS: true,
-        onclone: (_doc, el) => {
-          // Force white background and dark text for publication
-          el.style.backgroundColor = "#ffffff"
-          el.style.padding = "16px"
-          const allEls = el.querySelectorAll("*")
-          allEls.forEach((node) => {
-            const e = node as HTMLElement
-            const s = window.getComputedStyle(e)
-            if (s.backgroundColor.includes("oklch") || s.backgroundColor.includes("rgb(3") || s.backgroundColor.includes("rgb(17"))
-              e.style.backgroundColor = "#ffffff"
-            if (s.color.includes("oklch")) e.style.color = "#111827"
-            if (s.borderColor.includes("oklch")) e.style.borderColor = "#d1d5db"
-            // Make chart lines/text dark
-            if (e.tagName === "text") e.style.fill = "#374151"
-          })
-        },
-      })
+    const dataUrl = await chartToPngDataUrl("#ffffff", 3)
+    if (!dataUrl) { console.error("chart-export-zone or SVG not found"); return }
 
-      const imgData = canvas.toDataURL("image/png")
-      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" })
-      const pageW = pdf.internal.pageSize.getWidth()
-      const pageH = pdf.internal.pageSize.getHeight()
-      const margin = 16
+    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" })
+    const pageW = pdf.internal.pageSize.getWidth()
+    const pageH = pdf.internal.pageSize.getHeight()
+    const margin = 16
 
-      // White background
-      pdf.setFillColor(255, 255, 255)
-      pdf.rect(0, 0, pageW, pageH, "F")
+    pdf.setFillColor(255, 255, 255)
+    pdf.rect(0, 0, pageW, pageH, "F")
 
-      // Title
-      pdf.setTextColor(17, 24, 39)
-      pdf.setFontSize(14)
-      pdf.setFont("helvetica", "bold")
-      pdf.text(title, margin, margin + 6)
+    pdf.setTextColor(17, 24, 39)
+    pdf.setFontSize(14)
+    pdf.setFont("helvetica", "bold")
+    pdf.text(title, margin, margin + 6)
 
-      // Subtitle
-      pdf.setTextColor(107, 114, 128)
-      pdf.setFontSize(9)
-      pdf.setFont("helvetica", "normal")
-      pdf.text(subtitle, margin, margin + 12)
+    pdf.setTextColor(107, 114, 128)
+    pdf.setFontSize(9)
+    pdf.setFont("helvetica", "normal")
+    pdf.text(subtitle, margin, margin + 12)
 
-      // Right: LabRat + date
-      pdf.setTextColor(156, 163, 175)
-      pdf.setFontSize(8)
-      pdf.text(
-        `LabRat · ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`,
-        pageW - margin, margin + 6, { align: "right" }
-      )
+    pdf.setTextColor(156, 163, 175)
+    pdf.setFontSize(8)
+    pdf.text(
+      `LabRat · ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`,
+      pageW - margin, margin + 6, { align: "right" }
+    )
 
-      // Thin divider
-      pdf.setDrawColor(229, 231, 235)
-      pdf.line(margin, margin + 16, pageW - margin, margin + 16)
+    pdf.setDrawColor(229, 231, 235)
+    pdf.line(margin, margin + 16, pageW - margin, margin + 16)
 
-      // Chart image
-      const imgW = pageW - margin * 2
-      const imgH = Math.min((canvas.height / canvas.width) * imgW, pageH - margin * 2 - 22)
-      pdf.addImage(imgData, "PNG", margin, margin + 20, imgW, imgH)
-
-      pdf.save(`${filename}.pdf`)
-    } catch (e) { console.error("PDF export error:", e) }
+    // Measure image dimensions from the data URL
+    const img = new Image()
+    await new Promise<void>(res => { img.onload = () => res(); img.src = dataUrl })
+    const imgW = pageW - margin * 2
+    const imgH = Math.min((img.height / img.width) * imgW, pageH - margin * 2 - 24)
+    pdf.addImage(dataUrl, "PNG", margin, margin + 20, imgW, imgH)
+    pdf.save(`${filename}.pdf`)
   }
 
   const exportCSV = (data: Record<string, unknown>[] | Record<string, unknown>, filename: string) => {

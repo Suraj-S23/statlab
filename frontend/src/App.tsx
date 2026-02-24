@@ -297,6 +297,63 @@ function LanguageSwitcher() {
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 
+// Flatten any result type into CSV-friendly rows
+function flattenForCsv(results: AnyResults): Record<string, unknown>[] {
+  switch (results.type) {
+    case "descriptive": {
+      const cols = Object.keys(results.data)
+      const keys = ["count","mean","median","std","min","max","q1","q3","iqr","skewness","kurtosis","outliers"]
+      return keys.map(k => {
+        const row: Record<string, unknown> = { statistic: k }
+        cols.forEach(col => { row[col] = (results.data[col] as Record<string, unknown>)[k] })
+        return row
+      })
+    }
+    case "two-group": {
+      const rows: Record<string, unknown>[] = []
+      Object.entries(results.data.groups).forEach(([grp, g]) => {
+        rows.push({ group: grp, n: g.n, mean: g.mean, median: g.median, std: g.std, normality: g.normality })
+      })
+      rows.push({ group: "t-test", statistic: results.data.t_test.statistic, p_value: results.data.t_test.p_value, significant: results.data.t_test.significant })
+      rows.push({ group: "Mann-Whitney U", statistic: results.data.mann_whitney.statistic, p_value: results.data.mann_whitney.p_value, significant: results.data.mann_whitney.significant })
+      return rows
+    }
+    case "anova": {
+      const rows: Record<string, unknown>[] = []
+      Object.entries(results.data.groups).forEach(([grp, g]) => {
+        rows.push({ group: grp, n: g.n, mean: g.mean, std: g.std })
+      })
+      rows.push({ group: "ANOVA", f_statistic: results.data.anova.f_statistic, p_value: results.data.anova.p_value, significant: results.data.anova.significant })
+      rows.push({ group: "Kruskal-Wallis", h_statistic: results.data.kruskal_wallis.h_statistic, p_value: results.data.kruskal_wallis.p_value, significant: results.data.kruskal_wallis.significant })
+      return rows
+    }
+    case "correlation":
+      return [
+        { test: "Pearson r", coefficient: results.data.pearson.r, p_value: results.data.pearson.p_value, significant: results.data.pearson.significant },
+        { test: "Spearman rho", coefficient: results.data.spearman.rho, p_value: results.data.spearman.p_value, significant: results.data.spearman.significant },
+      ]
+    case "regression":
+      return [{ slope: results.data.slope, intercept: results.data.intercept, r_squared: results.data.r_squared, r: results.data.r_value, p_value: results.data.p_value, std_err: results.data.std_err, n: results.data.n, significant: results.data.significant }]
+    case "chi-square": {
+      const rows: Record<string, unknown>[] = [
+        { test: "Chi-Square", statistic: results.data.chi_square.statistic, dof: results.data.chi_square.dof, p_value: results.data.chi_square.p_value, significant: results.data.chi_square.significant },
+      ]
+      if (results.data.fisher) rows.push({ test: "Fisher Exact", odds_ratio: results.data.fisher.odds_ratio, p_value: results.data.fisher.p_value, significant: results.data.fisher.significant })
+      return rows
+    }
+    case "dose-response":
+      return [{ ic50: results.data.ic50, hill_slope: results.data.hill_slope, bottom: results.data.bottom, top: results.data.top, r_squared: results.data.r_squared, n: results.data.n }]
+    case "kaplan-meier": {
+      if (results.data.groups) {
+        return Object.entries(results.data.groups).map(([grp, g]) => ({ group: grp, n: g.n, median_survival: g.median_survival ?? "not reached" }))
+      }
+      return [{ n: results.data.n, median_survival: results.data.median_survival ?? "not reached" }]
+    }
+    default: return []
+  }
+}
+
+
 export default function App() {
   const { isDark } = useTheme()
   const { t } = useTranslation()
@@ -539,7 +596,7 @@ export default function App() {
                           filename={results.type}
                           pdfTitle={results.type.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
                           pdfSubtitle={data?.filename ?? ""}
-                          csvData={results.data as unknown as Record<string, unknown>}
+                          csvData={flattenForCsv(results)}
                           hasChart={results.type !== "chi-square"}
                         />
                       </div>
