@@ -67,3 +67,23 @@ export interface TwoGroupResults {
   recommended_test: string
   interpretation: string
 }
+
+/** Per-group summary for ANOVA. */
+export interface AnovaGroupSummary {
+  n: number
+  mean: number
+  median: number
+  std: number
+}
+
+/** Result of a one-way ANOVA analysis. */
+export interface AnovaResults {
+  group_column: string
+  value_column: string
+  n_groups: number
+  skipped_groups: string[]
+  groups: Record<string, AnovaGroupSummary>
+  anova: { f_statistic: number; p_value: string; significant: boolean }
+  kruskal_wallis: { h_statistic: number; p_value: string; significant: boolean }
+  interpretation: string
+}

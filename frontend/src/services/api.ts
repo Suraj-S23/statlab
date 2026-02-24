@@ -4,7 +4,7 @@
  * the base URL for production later.
  */
 
-import type { UploadResponse, Suggestion, Column, DescriptiveResults, TwoGroupResults } from "../types"
+import type { UploadResponse, Suggestion, Column, DescriptiveResults, TwoGroupResults, AnovaResults } from "../types"
 
 const BASE_URL = "http://localhost:8000/api"
 
@@ -79,6 +79,28 @@ export async function runTwoGroup(
   value_col: string
 ): Promise<TwoGroupResults> {
   const response = await fetch(`${BASE_URL}/analysis/two-group`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id, group_col, value_col }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.detail)
+  }
+
+  return response.json()
+}
+
+/**
+ * Run one-way ANOVA and Kruskal-Wallis on selected columns.
+ */
+export async function runAnova(
+  session_id: string,
+  group_col: string,
+  value_col: string
+): Promise<AnovaResults> {
+  const response = await fetch(`${BASE_URL}/analysis/anova`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ session_id, group_col, value_col }),

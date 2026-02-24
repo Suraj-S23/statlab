@@ -11,11 +11,14 @@ import ColumnSelector from "./components/ColumnSelector"
 import TwoGroupSelector from "./components/TwoGroupSelector"
 import DescriptiveResults from "./components/DescriptiveResults"
 import TwoGroupResults from "./components/TwoGroupResults"
-import { runDescriptive, runTwoGroup } from "./services/api"
+import AnovaResults from "./components/AnovaResults"
+
+import { runDescriptive, runTwoGroup, runAnova} from "./services/api"
 import type {
   UploadResponse,
   DescriptiveResults as DescResults,
   TwoGroupResults as TwoResults,
+  AnovaResults as AnovaRes,
 } from "./types"
 
 function App() {
@@ -23,6 +26,7 @@ function App() {
   const [selectedTest, setSelectedTest] = useState<string | null>(null)
   const [descResults, setDescResults] = useState<DescResults | null>(null)
   const [twoGroupResults, setTwoGroupResults] = useState<TwoResults | null>(null)
+  const [anovaResults, setAnovaResults] = useState<AnovaRes | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -56,11 +60,26 @@ function App() {
     }
   }
 
+  const handleAnova = async (groupCol: string, valueCol: string) => {
+  if (!data) return
+  setLoading(true)
+  setError("")
+  try {
+    const res = await runAnova(data.session_id, groupCol, valueCol)
+    setAnovaResults(res)
+  } catch (e: unknown) {
+    setError(e instanceof Error ? e.message : "Analysis failed")
+  } finally {
+    setLoading(false)
+  }
+}
+
   const handleReset = () => {
     setData(null)
     setSelectedTest(null)
     setDescResults(null)
     setTwoGroupResults(null)
+    setAnovaResults(null)
     setError("")
   }
 
@@ -68,6 +87,7 @@ function App() {
     setSelectedTest(null)
     setDescResults(null)
     setTwoGroupResults(null)
+    setAnovaResults(null)
     setError("")
   }
 
@@ -81,6 +101,9 @@ function App() {
     }
     if (twoGroupResults) {
       return <TwoGroupResults results={twoGroupResults} onBack={handleBackToSuggestions} />
+    }
+    if (anovaResults) {
+      return <AnovaResults results={anovaResults} onBack={handleBackToSuggestions} />
     }
 
     // Loading state
@@ -106,6 +129,16 @@ function App() {
         <TwoGroupSelector
           columns={data.columns}
           onConfirm={handleTwoGroup}
+          onBack={handleBackToSuggestions}
+        />
+      )
+    }
+
+    if (selectedTest === "One-Way ANOVA") {
+      return (
+        <TwoGroupSelector
+          columns={data.columns}
+          onConfirm={handleAnova}
           onBack={handleBackToSuggestions}
         />
       )

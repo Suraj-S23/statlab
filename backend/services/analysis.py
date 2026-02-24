@@ -8,6 +8,7 @@ import pandas as pd
 from scipy import stats
 from typing import List
 from scipy.stats import ttest_ind, mannwhitneyu, shapiro
+from scipy.stats import f_oneway, kruskal
 
 
 def format_p(p: float) -> str:
@@ -88,6 +89,10 @@ def two_group_comparison(data: list[dict], group_col: str, value_col: str) -> di
             f"Expected exactly 2 groups in '{group_col}', found {len(groups)}. "
             "Use One-Way ANOVA for 3+ groups."
         )
+
+    # Normalise string booleans so true/True/TRUE are treated as the same group
+    if df[group_col].dtype == object:
+        df[group_col] = df[group_col].str.strip().str.lower()
 
     # Split into two groups and drop missing values
     group_a_label, group_b_label = str(groups[0]), str(groups[1])
@@ -181,5 +186,109 @@ def two_group_comparison(data: list[dict], group_col: str, value_col: str) -> di
             "significant": bool(u_significant),
         },
         "recommended_test": recommended,
+        "interpretation": interpretation,
+    }
+
+
+def one_way_anova(data: list[dict], group_col: str, value_col: str) -> dict:
+    """
+    Compare a numeric outcome across three or more groups using:
+    - One-way ANOVA (parametric)
+    - Kruskal-Wallis test (non-parametric alternative)
+
+    Groups with fewer than 3 observations are skipped with a warning.
+    Returns per-group descriptive statistics and a plain-English interpretation.
+    """
+    df = pd.DataFrame(data)
+
+    if group_col not in df.columns or value_col not in df.columns:
+        raise ValueError(f"Columns '{group_col}' or '{value_col}' not found in dataset")
+
+    groups = df[group_col].dropna().unique()
+    if len(groups) < 3:
+        raise ValueError(
+            f"Expected 3+ groups in '{group_col}', found {len(groups)}. "
+            "Use t-test / Mann-Whitney for 2 groups."
+        )
+
+    # Normalise string booleans so true/True/TRUE are treated as the same group
+    if df[group_col].dtype == object:
+        df[group_col] = df[group_col].str.strip().str.lower()
+    # Split into per-group series, drop missing values
+    group_data = {
+        str(g): pd.to_numeric(
+            df[df[group_col] == g][value_col], errors="coerce"
+        ).dropna()
+        for g in groups
+    }
+
+    # Skip groups with fewer than 3 observations and warn
+    skipped = []
+    filtered = {}
+    for name, series in group_data.items():
+        if len(series) < 3:
+            skipped.append(name)
+        else:
+            filtered[name] = series
+
+    group_data = filtered
+
+    if len(group_data) < 3:
+        raise ValueError(
+            f"After removing small groups, fewer than 3 valid groups remain. "
+            f"Skipped groups: {', '.join(skipped)}"
+        )
+
+    # One-way ANOVA
+    f_stat, f_p = f_oneway(*group_data.values())
+
+    # Kruskal-Wallis (non-parametric alternative)
+    k_stat, k_p = kruskal(*group_data.values())
+
+    # Per-group summary statistics
+    group_summaries = {}
+    for name, series in group_data.items():
+        group_summaries[name] = {
+            "n": int(len(series)),
+            "mean": round(float(series.mean()), 4),
+            "median": round(float(series.median()), 4),
+            "std": round(float(series.std()), 4),
+        }
+
+    # Plain-English interpretation
+    alpha = 0.05
+    f_significant = bool(f_p < alpha)
+    k_significant = bool(k_p < alpha)
+
+    if f_significant:
+        interpretation = (
+            f"One-way ANOVA found a statistically significant difference in "
+            f"'{value_col}' across {len(group_data)} groups of '{group_col}' "
+            f"(F = {round(float(f_stat), 4)}, p = {format_p(float(f_p))}). "
+            f"Consider running post-hoc tests to identify which groups differ."
+        )
+    else:
+        interpretation = (
+            f"No statistically significant difference was found in '{value_col}' "
+            f"across groups of '{group_col}' "
+            f"(F = {round(float(f_stat), 4)}, p = {format_p(float(f_p))})."
+        )
+
+    return {
+        "group_column": group_col,
+        "value_column": value_col,
+        "n_groups": int(len(group_data)),
+        "skipped_groups": skipped,
+        "groups": group_summaries,
+        "anova": {
+            "f_statistic": round(float(f_stat), 4),
+            "p_value": format_p(float(f_p)),
+            "significant": f_significant,
+        },
+        "kruskal_wallis": {
+            "h_statistic": round(float(k_stat), 4),
+            "p_value": format_p(float(k_p)),
+            "significant": k_significant,
+        },
         "interpretation": interpretation,
     }

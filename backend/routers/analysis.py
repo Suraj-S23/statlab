@@ -8,7 +8,11 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
 from utils.session import get_session
-from services.analysis import descriptive_statistics, two_group_comparison
+from services.analysis import (
+    descriptive_statistics,
+    two_group_comparison,
+    one_way_anova,
+)
 
 
 router = APIRouter()
@@ -63,6 +67,33 @@ def run_two_group(request: TwoGroupRequest):
         )
     try:
         results = two_group_comparison(data, request.group_col, request.value_col)
+        return results
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+class AnovaRequest(BaseModel):
+    """Request body for one-way ANOVA."""
+
+    session_id: str
+    group_col: str
+    value_col: str
+
+
+@router.post("/analysis/anova")
+def run_anova(request: AnovaRequest):
+    """
+    Retrieve dataset from Redis, then compare a numeric outcome
+    across 3+ groups using one-way ANOVA and Kruskal-Wallis.
+    """
+    data = get_session(request.session_id)
+    if data is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Session not found or expired. Please re-upload your file.",
+        )
+    try:
+        results = one_way_anova(data, request.group_col, request.value_col)
         return results
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

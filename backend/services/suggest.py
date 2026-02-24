@@ -80,7 +80,7 @@ def suggest_tests(columns: List[ColumnInfo]) -> List[Suggestion]:
             Suggestion(
                 test="Independent t-test / Mann-Whitney U",
                 reason="Compare a numeric outcome between two groups",
-                columns_needed="One categorical column (2 groups) + one numeric column",
+                columns_needed="One categorical or boolean column with exactly 2 groups + one numeric column",
                 tier=1,
             )
         )
@@ -88,7 +88,7 @@ def suggest_tests(columns: List[ColumnInfo]) -> List[Suggestion]:
             Suggestion(
                 test="One-Way ANOVA",
                 reason="Compare a numeric outcome across three or more groups",
-                columns_needed="One categorical column (3+ groups) + one numeric column",
+                columns_needed="One categorical column with 3+ groups (each with 3+ observations) + one numeric column",
                 tier=1,
             )
         )
