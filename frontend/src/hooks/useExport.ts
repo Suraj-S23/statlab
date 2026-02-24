@@ -1,61 +1,83 @@
+import html2canvas from "html2canvas"
 import jsPDF from "jspdf"
 
-// Serialize the SVG inside chart-export-zone to a high-res PNG data URL
-async function chartToPngDataUrl(bgColor: string, scale = 3): Promise<string | null> {
+// Resolve all CSS variables to concrete values before html2canvas runs
+function resolveCssVars(el: HTMLElement, dark: boolean) {
+  const vars: Record<string, string> = {
+    "--bg":           dark ? "#030712" : "#ffffff",
+    "--bg-alt":       dark ? "#0f172a" : "#f8fafc",
+    "--surface":      dark ? "#111827" : "#ffffff",
+    "--border":       dark ? "#1f2937" : "#e5e7eb",
+    "--text":         dark ? "#f9fafb" : "#111827",
+    "--text-muted":   dark ? "#6b7280" : "#6b7280",
+    "--accent":       "#3b82f6",
+    "--accent-dim":   dark ? "#1e3a5f" : "#dbeafe",
+    "--accent-text":  "#60a5fa",
+    "--nav-bg":       dark ? "#030712cc" : "#ffffffcc",
+  }
+
+  const walk = (node: HTMLElement) => {
+    const cs = getComputedStyle(node)
+    const bg = cs.backgroundColor
+    const fg = cs.color
+    const bc = cs.borderColor
+
+    // Replace oklch or var() references
+    if (bg.startsWith("oklch") || bg.includes("var(")) {
+      node.style.backgroundColor = dark ? "#111827" : "#ffffff"
+    }
+    if (fg.startsWith("oklch") || fg.includes("var(")) {
+      node.style.color = dark ? "#d1d5db" : "#374151"
+    }
+    if (bc.startsWith("oklch") || bc.includes("var(")) {
+      node.style.borderColor = dark ? "#374151" : "#e5e7eb"
+    }
+
+    // Resolve CSS variable values explicitly
+    Object.entries(vars).forEach(([v, val]) => {
+      if (node.style.cssText.includes(v)) {
+        node.style.cssText = node.style.cssText.replace(new RegExp(`var\\(${v}\\)`, 'g'), val)
+      }
+    })
+
+    Array.from(node.children).forEach(child => walk(child as HTMLElement))
+  }
+  walk(el)
+}
+
+async function captureZone(dark: boolean): Promise<string | null> {
   const zone = document.getElementById("chart-export-zone")
   if (!zone) return null
 
-  const svg = zone.querySelector("svg")
-  if (!svg) return null
+  // Force bg color on zone itself
+  const origBg = zone.style.backgroundColor
+  zone.style.backgroundColor = dark ? "#0f172a" : "#ffffff"
 
-  const rect = zone.getBoundingClientRect()
-  const w = rect.width || svg.clientWidth || 800
-  const h = rect.height || svg.clientHeight || 400
-
-  // Clone SVG and inline computed styles for text/axes
-  const clone = svg.cloneNode(true) as SVGSVGElement
-  clone.setAttribute("width", String(w))
-  clone.setAttribute("height", String(h))
-  clone.style.background = bgColor
-
-  // Inline font styles on all text nodes
-  svg.querySelectorAll("text, tspan").forEach((orig, i) => {
-    const cloned = clone.querySelectorAll("text, tspan")[i] as SVGElement
-    if (!cloned) return
-    const cs = window.getComputedStyle(orig)
-    cloned.style.fontFamily = cs.fontFamily || "monospace"
-    cloned.style.fontSize = cs.fontSize || "11px"
-    cloned.style.fill = bgColor === "#ffffff" ? "#374151" : (cs.fill || "#9ca3af")
-  })
-
-  const serializer = new XMLSerializer()
-  const svgStr = serializer.serializeToString(clone)
-  const svgBlob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" })
-  const url = URL.createObjectURL(svgBlob)
-
-  return new Promise((resolve) => {
-    const img = new Image()
-    img.onload = () => {
-      const canvas = document.createElement("canvas")
-      canvas.width = w * scale
-      canvas.height = h * scale
-      const ctx = canvas.getContext("2d")!
-      ctx.scale(scale, scale)
-      ctx.fillStyle = bgColor
-      ctx.fillRect(0, 0, w, h)
-      ctx.drawImage(img, 0, 0, w, h)
-      URL.revokeObjectURL(url)
-      resolve(canvas.toDataURL("image/png"))
-    }
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(null) }
-    img.src = url
-  })
+  try {
+    const canvas = await html2canvas(zone, {
+      backgroundColor: dark ? "#0f172a" : "#ffffff",
+      scale: 3,
+      useCORS: true,
+      logging: false,
+      onclone: (_doc, clonedEl) => {
+        clonedEl.style.backgroundColor = dark ? "#0f172a" : "#ffffff"
+        clonedEl.style.padding = "16px"
+        resolveCssVars(clonedEl, dark)
+      },
+    })
+    zone.style.backgroundColor = origBg
+    return canvas.toDataURL("image/png")
+  } catch (e) {
+    zone.style.backgroundColor = origBg
+    console.error("Capture error:", e)
+    return null
+  }
 }
 
 export function useExport() {
   const exportPNG = async (filename: string) => {
-    const dataUrl = await chartToPngDataUrl("#0f172a", 3)
-    if (!dataUrl) { console.error("chart-export-zone or SVG not found"); return }
+    const dataUrl = await captureZone(true)
+    if (!dataUrl) return
     const link = document.createElement("a")
     link.download = `${filename}.png`
     link.href = dataUrl
@@ -63,8 +85,8 @@ export function useExport() {
   }
 
   const exportPublicationPDF = async (filename: string, title: string, subtitle: string) => {
-    const dataUrl = await chartToPngDataUrl("#ffffff", 3)
-    if (!dataUrl) { console.error("chart-export-zone or SVG not found"); return }
+    const dataUrl = await captureZone(false)
+    if (!dataUrl) return
 
     const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" })
     const pageW = pdf.internal.pageSize.getWidth()
@@ -94,7 +116,6 @@ export function useExport() {
     pdf.setDrawColor(229, 231, 235)
     pdf.line(margin, margin + 16, pageW - margin, margin + 16)
 
-    // Measure image dimensions from the data URL
     const img = new Image()
     await new Promise<void>(res => { img.onload = () => res(); img.src = dataUrl })
     const imgW = pageW - margin * 2
