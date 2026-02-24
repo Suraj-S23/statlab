@@ -10,7 +10,8 @@ from routers import upload, suggest, analysis
 app = FastAPI(
     title="LabRat API",
     description="Statistical analysis backend for LabRat — a research-focused data analysis tool.",
-    version="0.2.0"
+    version="0.2.0",
+    redirect_slashes=False,
 )
 
 app.add_middleware(
@@ -24,6 +25,7 @@ app.add_middleware(
 app.include_router(upload.router, prefix="/api")
 app.include_router(suggest.router, prefix="/api")
 app.include_router(analysis.router, prefix="/api")
+
 
 @app.get("/")
 def root():
