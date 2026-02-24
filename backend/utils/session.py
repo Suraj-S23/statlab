@@ -1,10 +1,3 @@
-"""
-Session utility — manages temporary dataset storage in Redis.
-
-Reads REDIS_HOST and REDIS_PORT from environment variables so it works
-both locally and inside Docker (where Redis runs as a separate container).
-"""
-
 import redis
 import json
 import uuid
@@ -13,7 +6,6 @@ from typing import Optional
 
 REDIS_HOST = os.getenv("REDISHOST", os.getenv("REDIS_HOST", "localhost"))
 REDIS_PORT = int(os.getenv("REDISPORT", os.getenv("REDIS_PORT", "6379")))
-
 REDIS_PASSWORD = os.getenv("REDISPASSWORD", os.getenv("REDIS_PASSWORD", None))
 
 r = redis.Redis(
