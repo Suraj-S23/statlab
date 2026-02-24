@@ -101,7 +101,7 @@ export function useExport() {
     pdf.setTextColor(96, 165, 250) // blue-400
     pdf.setFontSize(16)
     pdf.setFont("helvetica", "bold")
-    pdf.text("StatLab", margin, margin + 4)
+    pdf.text("LabRat", margin, margin + 4)
 
     pdf.setTextColor(156, 163, 175) // gray-400
     pdf.setFontSize(10)
