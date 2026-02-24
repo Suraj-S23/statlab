@@ -305,7 +305,7 @@ function flattenForCsv(results: AnyResults): Record<string, unknown>[] {
       const keys = ["count","mean","median","std","min","max","q1","q3","iqr","skewness","kurtosis","outliers"]
       return keys.map(k => {
         const row: Record<string, unknown> = { statistic: k }
-        cols.forEach(col => { row[col] = (results.data[col] as Record<string, unknown>)[k] })
+        cols.forEach(col => { row[col] = (results.data[col] as unknown as Record<string, unknown>)[k] })
         return row
       })
     }
