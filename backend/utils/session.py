@@ -14,7 +14,15 @@ from typing import Optional
 REDIS_HOST = os.getenv("REDISHOST", os.getenv("REDIS_HOST", "localhost"))
 REDIS_PORT = int(os.getenv("REDISPORT", os.getenv("REDIS_PORT", "6379")))
 
-r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0, decode_responses=True)
+REDIS_PASSWORD = os.getenv("REDISPASSWORD", os.getenv("REDIS_PASSWORD", None))
+
+r = redis.Redis(
+    host=REDIS_HOST,
+    port=REDIS_PORT,
+    password=REDIS_PASSWORD,
+    db=0,
+    decode_responses=True,
+)
 
 SESSION_TTL = 60 * 60 * 2  # 2 hours
 
