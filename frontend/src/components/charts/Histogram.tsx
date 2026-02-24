@@ -14,10 +14,11 @@ export default function Histogram({ data, title }: Props) {
   const interval = Math.max(0, Math.ceil(data.length / 6) - 1)
 
   return (
-    <div style={{ marginTop: 4, overflow: "visible" }}>
+    <div style={{ marginTop: 4 }}>
+      <style>{`.histogram-chart .recharts-wrapper svg { overflow: visible !important; }`}</style>
       <p style={{ color: "var(--text-muted)", fontSize: 11, marginBottom: 8 }}>{title}</p>
-      <div style={{ overflow: "visible", paddingBottom: 8 }}>
-        <ResponsiveContainer width="100%" height={220}>
+      <div className="histogram-chart">
+        <ResponsiveContainer width="100%" height={200}>
           <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 60 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
             <XAxis
