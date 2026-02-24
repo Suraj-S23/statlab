@@ -14,29 +14,31 @@ export default function Histogram({ data, title }: Props) {
   const interval = Math.max(0, Math.ceil(data.length / 6) - 1)
 
   return (
-    <div style={{ marginTop: 4 }}>
+    <div style={{ marginTop: 4, overflow: "visible" }}>
       <p style={{ color: "var(--text-muted)", fontSize: 11, marginBottom: 8 }}>{title}</p>
-      <ResponsiveContainer width="100%" height={200}>
-        <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 56 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-          <XAxis
-            dataKey="bin_label"
-            tick={{ fill: "var(--text-muted)", fontSize: 9 }}
-            angle={-40}
-            textAnchor="end"
-            interval={interval}
-            height={60}
-            tickMargin={4}
-          />
-          <YAxis tick={{ fill: "var(--text-muted)", fontSize: 10 }} width={28} />
-          <Tooltip
-            contentStyle={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }}
-            labelStyle={{ color: "var(--text-muted)", fontSize: 11 }}
-            itemStyle={{ color: "var(--accent-text)" }}
-          />
-          <Bar dataKey="count" fill="#3b82f6" radius={[2, 2, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
+      <div style={{ overflow: "visible", paddingBottom: 8 }}>
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 60 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+            <XAxis
+              dataKey="bin_label"
+              tick={{ fill: "var(--text-muted)", fontSize: 9 }}
+              angle={-40}
+              textAnchor="end"
+              interval={interval}
+              height={64}
+              tickMargin={2}
+            />
+            <YAxis tick={{ fill: "var(--text-muted)", fontSize: 10 }} width={28} />
+            <Tooltip
+              contentStyle={{ backgroundColor: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }}
+              labelStyle={{ color: "var(--text-muted)", fontSize: 11 }}
+              itemStyle={{ color: "var(--accent-text)" }}
+            />
+            <Bar dataKey="count" fill="#3b82f6" radius={[2, 2, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   )
 }

@@ -43,9 +43,9 @@ export default function DescriptiveResults({ results, onBack }: Props) {
                 <td style={{ padding: "8px 14px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: 11 }}>{label}</td>
                 {columns.map(col => (
                   <td key={col} style={{ padding: "8px 14px", fontFamily: "var(--font-mono)", fontSize: 11 }}>
-                    {key === "outliers" && (results[col] as any)[key] > 0
-                      ? <span style={{ color: "#f59e0b" }}>{(results[col] as any)[key]}</span>
-                      : <span style={{ color: "var(--text)" }}>{String((results[col] as any)[key])}</span>}
+                    {key === "outliers" && (results[col] as unknown as Record<string, number>)[key] > 0
+                      ? <span style={{ color: "#f59e0b" }}>{(results[col] as unknown as Record<string, number>)[key]}</span>
+                      : <span style={{ color: "var(--text)" }}>{String((results[col] as unknown as Record<string, number | string>)[key])}</span>}
                   </td>
                 ))}
               </tr>
@@ -56,7 +56,7 @@ export default function DescriptiveResults({ results, onBack }: Props) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
         {columns.map(col => (
           results[col].histogram?.length > 0 && (
-            <div key={col} style={{ padding: "14px 16px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)" }}>
+            <div key={col} style={{ padding: "14px 16px 4px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", overflow: "visible" }}>
               <Histogram data={results[col].histogram} title={`${t("descriptive.distribution")} — ${col}`} />
             </div>
           )
