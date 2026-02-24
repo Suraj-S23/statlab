@@ -17,7 +17,6 @@ export interface UploadResponse {
   rows: number
   columns: Column[]
   preview: Record<string, string | number>[]
-  data: Record<string, string | number>[] 
 }
 
 /** A single statistical test suggestion returned by /api/suggest. */
@@ -85,5 +84,79 @@ export interface AnovaResults {
   groups: Record<string, AnovaGroupSummary>
   anova: { f_statistic: number; p_value: string; significant: boolean }
   kruskal_wallis: { h_statistic: number; p_value: string; significant: boolean }
+  interpretation: string
+}
+
+/** Result of a correlation analysis. */
+export interface CorrelationResults {
+  col_a: string
+  col_b: string
+  n: number
+  pearson: { r: number; p_value: string; significant: boolean }
+  spearman: { rho: number; p_value: string; significant: boolean }
+  interpretation: string
+}
+
+/** Result of a linear regression analysis. */
+export interface RegressionResults {
+  predictor: string
+  outcome: string
+  n: number
+  slope: number
+  intercept: number
+  r_squared: number
+  r_value: number
+  p_value: string
+  std_err: number
+  significant: boolean
+  interpretation: string
+}
+
+/** Result of a chi-square test. */
+export interface ChiSquareResults {
+  col_a: string
+  col_b: string
+  n: number
+  chi_square: { statistic: number; p_value: string; dof: number; significant: boolean }
+  fisher: { odds_ratio: number; p_value: string; significant: boolean } | null
+  assumption_warning: string | null
+  interpretation: string
+}
+
+/** Result of a dose-response curve fit. */
+export interface DoseResponseResults {
+  concentration_col: string
+  response_col: string
+  n: number
+  ic50: number
+  hill_slope: number
+  bottom: number
+  top: number
+  r_squared: number
+  curve_x: number[]
+  curve_y: number[]
+  data_x: number[]
+  data_y: number[]
+  interpretation: string
+}
+
+/** Single point on a Kaplan-Meier survival curve. */
+export interface SurvivalPoint {
+  time: number
+  survival: number
+}
+
+/** Result of Kaplan-Meier survival analysis. */
+export interface KaplanMeierResults {
+  time_col: string
+  event_col: string
+  n: number
+  curve?: SurvivalPoint[]
+  median_survival?: number | null
+  groups?: Record<string, {
+    curve: SurvivalPoint[]
+    median_survival: number | null
+    n: number
+  }>
   interpretation: string
 }
