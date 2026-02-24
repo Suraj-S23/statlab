@@ -495,6 +495,11 @@ def chi_square(data: list[dict], col_a: str, col_b: str) -> dict:
         "fisher": fisher_result,
         "assumption_warning": assumption_warning,
         "interpretation": interpretation,
+        "contingency_table": {
+            "row_labels": [str(v) for v in contingency.index.tolist()],
+            "col_labels": [str(v) for v in contingency.columns.tolist()],
+            "values": contingency.values.tolist(),
+        },
     }
 
 

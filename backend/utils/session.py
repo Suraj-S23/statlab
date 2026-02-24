@@ -1,40 +1,31 @@
 """
 Session utility — manages temporary dataset storage in Redis.
 
-When a user uploads a CSV, the parsed dataframe is serialised and
-stored in Redis with a UUID session key. All subsequent analysis
-requests reference this key instead of re-sending the full dataset.
-
-Sessions expire automatically after 2 hours.
+Reads REDIS_HOST and REDIS_PORT from environment variables so it works
+both locally and inside Docker (where Redis runs as a separate container).
 """
 
 import redis
 import json
 import uuid
+import os
 from typing import Optional
 
-# Connect to local Redis instance
-r = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
 
-# Session expiry time in seconds (2 hours)
-SESSION_TTL = 60 * 60 * 2
+r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0, decode_responses=True)
+
+SESSION_TTL = 60 * 60 * 2  # 2 hours
 
 
 def create_session(data: list[dict]) -> str:
-    """
-    Store a dataset in Redis and return a unique session ID.
-    The data is serialised to JSON and expires after SESSION_TTL seconds.
-    """
     session_id = str(uuid.uuid4())
     r.setex(session_id, SESSION_TTL, json.dumps(data))
     return session_id
 
 
 def get_session(session_id: str) -> Optional[list[dict]]:
-    """
-    Retrieve a dataset from Redis by session ID.
-    Returns None if the session has expired or does not exist.
-    """
     raw = r.get(session_id)
     if raw is None:
         return None
@@ -42,5 +33,4 @@ def get_session(session_id: str) -> Optional[list[dict]]:
 
 
 def delete_session(session_id: str) -> None:
-    """Explicitly delete a session from Redis before it expires."""
     r.delete(session_id)
