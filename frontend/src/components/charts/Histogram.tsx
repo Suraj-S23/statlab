@@ -30,11 +30,11 @@ export default function Histogram({ data, title }: Props) {
       </p>
 
       <div className="histogram-chart">
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={320}>
           <BarChart
             data={data}
             // ⬇️ increased bottom margin to give rotated labels more room
-            margin={{ top: 4, right: 24, left: 0, bottom: 70 }}
+            margin={{ top: 4, right: 24, left: 0, bottom: 90 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
 
@@ -45,7 +45,7 @@ export default function Histogram({ data, title }: Props) {
               textAnchor="end"
               interval={interval}
               // ⬇️ slightly taller axis area for labels
-              height={70}
+              height={90}
               // ⬇️ more spacing between axis line and text
               tickMargin={8}
               // ⬇️ pushes labels downward (helps avoid overlap with axis line)
