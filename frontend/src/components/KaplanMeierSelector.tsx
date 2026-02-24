@@ -37,7 +37,8 @@ export default function KaplanMeierSelector({ columns, onConfirm, onBack }: Prop
   const [eventCol, setEventCol] = useState<string | null>(null)
   const [groupCol, setGroupCol] = useState<string | null>(null)
   const numeric = columns.filter(c => c.type === "numeric")
-  const categorical = columns.filter(c => c.type === "categorical" || c.type === "boolean")
+  const eventCols = columns.filter(c => c.type === "numeric" || c.type === "boolean")
+  const categorical = columns.filter(c => c.type === "categorical")
   const canConfirm = timeCol !== null && eventCol !== null && timeCol !== eventCol
 
   return (
@@ -57,7 +58,7 @@ export default function KaplanMeierSelector({ columns, onConfirm, onBack }: Prop
 
       <p style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-mono)", marginBottom: 10 }}>Event column (0/1)</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 22 }}>
-        {numeric.map(col => <ColBtn key={col.name} name={col.name} selected={eventCol === col.name} disabled={col.name === timeCol} onClick={() => setEventCol(col.name)} />)}
+        {eventCols.map(col => <ColBtn key={col.name} name={col.name} selected={eventCol === col.name} disabled={col.name === timeCol} onClick={() => setEventCol(col.name)} />)}
       </div>
 
       <p style={{ color: "var(--text-muted)", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-mono)", marginBottom: 10 }}>Group column (optional)</p>
