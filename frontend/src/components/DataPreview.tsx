@@ -1,9 +1,8 @@
 /**
- * DataPreview — displays a summary of the uploaded dataset.
- * Shows column type tags, missing value warnings, and a scrollable
- * preview of the first 5 rows.
+ * DataPreview — compact header showing file info and column type badges.
  */
 
+import { motion } from "framer-motion"
 import type { UploadResponse } from "../types"
 
 interface Props {
@@ -12,72 +11,60 @@ interface Props {
 }
 
 export default function DataPreview({ data, onReset }: Props) {
-  return (
-    <div className="mt-8">
+  const numericCount = data.columns.filter((c) => c.type === "numeric").length
+  const categoricalCount = data.columns.filter((c) => c.type === "categorical").length
+  const booleanCount = data.columns.filter((c) => c.type === "boolean").length
+  const missingCount = data.columns.filter((c) => c.missing > 0).length
 
-      {/* File summary header */}
-      <div className="flex items-center justify-between mb-4">
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-5 rounded-2xl border border-gray-800 bg-gray-900 mb-6"
+    >
+      {/* File header */}
+      <div className="flex items-start justify-between mb-4">
         <div>
-          <h2 className="text-xl font-semibold text-white">{data.filename}</h2>
-          <p className="text-gray-400 text-sm mt-1">{data.rows} rows · {data.columns.length} columns</p>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-2 h-2 bg-green-400 rounded-full" />
+            <h2 className="text-white font-semibold text-sm">{data.filename}</h2>
+          </div>
+          <p className="text-gray-500 text-xs">
+            {data.rows.toLocaleString()} rows · {data.columns.length} columns ·{" "}
+            {numericCount} numeric · {categoricalCount} categorical · {booleanCount} boolean
+            {missingCount > 0 && (
+              <span className="text-yellow-500"> · {missingCount} columns with missing values</span>
+            )}
+          </p>
         </div>
         <button
           onClick={onReset}
-          className="text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 px-4 py-2 rounded-lg transition-all"
+          className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
         >
-          Upload new file
+          ✕ Close
         </button>
       </div>
 
-      {/* Column type tags — blue for numeric, purple for categorical */}
-      <div className="flex gap-2 flex-wrap mb-6">
+      {/* Column badges */}
+      <div className="flex flex-wrap gap-1.5">
         {data.columns.map((col) => (
           <span
             key={col.name}
-            className={`px-3 py-1 rounded-full text-xs font-medium
+            className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg border font-medium
               ${col.type === "numeric"
-                ? "bg-blue-900 text-blue-300"
+                ? "bg-blue-950 border-blue-900 text-blue-300"
                 : col.type === "boolean"
-                ? "bg-green-900 text-green-300"
-                : "bg-purple-900 text-purple-300"}`}
+                ? "bg-green-950 border-green-900 text-green-300"
+                : "bg-purple-950 border-purple-900 text-purple-300"
+              }`}
           >
-            {col.name} · {col.type}
-            {/* Warn if column has missing values */}
+            {col.name}
             {col.missing > 0 && (
-              <span className="ml-1 text-yellow-400">· {col.missing} missing</span>
+              <span className="text-yellow-400 font-normal">· {col.missing} missing</span>
             )}
           </span>
         ))}
       </div>
-
-      {/* Scrollable data preview table */}
-      <div className="overflow-x-auto rounded-xl border border-gray-800">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-gray-900 text-gray-400 uppercase text-xs">
-            <tr>
-              {data.columns.map((col) => (
-                <th key={col.name} className="px-4 py-3 font-medium">
-                  {col.name}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data.preview.map((row, i) => (
-              <tr key={i} className="border-t border-gray-800 hover:bg-gray-900 transition-colors">
-                {data.columns.map((col) => (
-                  <td key={col.name} className="px-4 py-3 text-gray-300">
-                    {row[col.name] !== undefined ? String(row[col.name]) : "—"}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="px-4 py-2 bg-gray-900 border-t border-gray-800 text-gray-500 text-xs">
-          Showing first 5 rows of {data.rows}
-        </div>
-      </div>
-    </div>
+    </motion.div>
   )
 }

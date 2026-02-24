@@ -1,10 +1,9 @@
 /**
- * SuggestionPanel — displays recommended statistical tests based on
- * the uploaded dataset's column structure. Users can select a test
- * to proceed with analysis.
+ * SuggestionPanel — displays recommended statistical tests as clickable cards.
  */
 
 import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
 import { getSuggestions } from "../services/api"
 import type { UploadResponse, Suggestion } from "../types"
 
@@ -13,61 +12,59 @@ interface Props {
   onSelectTest: (test: string) => void
 }
 
+const TEST_ICONS: Record<string, string> = {
+  "Descriptive Statistics": "∑",
+  "Independent t-test / Mann-Whitney U": "t",
+  "One-Way ANOVA": "F",
+  "Correlation (Pearson / Spearman)": "r",
+  "Simple Linear Regression": "β",
+  "Chi-Square / Fisher's Exact Test": "χ²",
+  "Dose-Response / IC50 Curve": "IC",
+  "Kaplan-Meier Survival Analysis": "S(t)",
+}
+
 export default function SuggestionPanel({ data, onSelectTest }: Props) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
 
-  /** Fetch suggestions from the backend whenever the dataset changes. */
   useEffect(() => {
-    const fetchSuggestions = async () => {
-      setLoading(true)
-      try {
-        const results = await getSuggestions(data.columns)
-        setSuggestions(results)
-      } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : "Could not load suggestions")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchSuggestions()
+    getSuggestions(data.columns)
+      .then(setSuggestions)
+      .finally(() => setLoading(false))
   }, [data.columns])
 
-  // Separate tier 1 (core) and tier 2 (advanced) suggestions
-  const core = suggestions.filter((s) => s.tier === 1)
-  const advanced = suggestions.filter((s) => s.tier === 2)
-
   if (loading) return (
-    <p className="text-blue-400 text-sm mt-6">Analysing your data structure...</p>
+    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="h-28 rounded-2xl bg-gray-900 border border-gray-800 animate-pulse" />
+      ))}
+    </div>
   )
 
-  if (error) return (
-    <p className="text-red-400 text-sm mt-6">{error}</p>
-  )
+  const tier1 = suggestions.filter((s) => s.tier === 1)
+  const tier2 = suggestions.filter((s) => s.tier === 2)
 
   return (
-    <div className="mt-10">
-      <h3 className="text-lg font-semibold text-white mb-1">Suggested Analyses</h3>
-      <p className="text-gray-500 text-sm mb-6">
-        Based on your data structure. Select a test to continue.
-      </p>
+    <div className="mt-6">
+      <div className="mb-5">
+        <h2 className="text-white font-semibold text-base mb-1">Suggested analyses</h2>
+        <p className="text-gray-500 text-sm">Based on your data's column types</p>
+      </div>
 
-      {/* Core tests */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-        {core.map((s) => (
-          <SuggestionCard key={s.test} suggestion={s} onSelect={onSelectTest} />
+      {/* Tier 1 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+        {tier1.map((s, i) => (
+          <SuggestionCard key={s.test} suggestion={s} onClick={() => onSelectTest(s.test)} delay={i * 0.05} />
         ))}
       </div>
 
-      {/* Advanced tests — shown under a separate label */}
-      {advanced.length > 0 && (
+      {/* Tier 2 */}
+      {tier2.length > 0 && (
         <>
-          <p className="text-gray-500 text-xs uppercase tracking-widest mb-3">Advanced</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {advanced.map((s) => (
-              <SuggestionCard key={s.test} suggestion={s} onSelect={onSelectTest} />
+          <p className="text-gray-600 text-xs font-medium uppercase tracking-wider mb-3">Advanced</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {tier2.map((s, i) => (
+              <SuggestionCard key={s.test} suggestion={s} onClick={() => onSelectTest(s.test)} delay={i * 0.05} dim />
             ))}
           </div>
         </>
@@ -76,25 +73,49 @@ export default function SuggestionPanel({ data, onSelectTest }: Props) {
   )
 }
 
-/** Individual suggestion card — shows test name, reason, and required columns. */
 function SuggestionCard({
   suggestion,
-  onSelect,
+  onClick,
+  delay,
+  dim,
 }: {
   suggestion: Suggestion
-  onSelect: (test: string) => void
+  onClick: () => void
+  delay: number
+  dim?: boolean
 }) {
+  const icon = TEST_ICONS[suggestion.test] ?? "→"
+
   return (
-    <button
-      onClick={() => onSelect(suggestion.test)}
-      className="text-left p-4 rounded-xl border border-gray-800 bg-gray-900
-        hover:border-blue-500 hover:bg-gray-800 transition-all group"
+    <motion.button
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.2 }}
+      whileHover={{ y: -2, transition: { duration: 0.15 } }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className={`text-left p-4 rounded-2xl border transition-colors group w-full
+        ${dim
+          ? "border-gray-800 bg-gray-900 hover:border-gray-600 hover:bg-gray-800"
+          : "border-gray-800 bg-gray-900 hover:border-blue-800 hover:bg-blue-950"
+        }`}
     >
-      <p className="text-white font-medium group-hover:text-blue-400 transition-colors">
-        {suggestion.test}
-      </p>
-      <p className="text-gray-400 text-sm mt-1">{suggestion.reason}</p>
-      <p className="text-gray-600 text-xs mt-2">Needs: {suggestion.columns_needed}</p>
-    </button>
+      <div className="flex items-start gap-3">
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0 transition-colors
+          ${dim
+            ? "bg-gray-800 text-gray-500 group-hover:bg-gray-700 group-hover:text-gray-300"
+            : "bg-gray-800 text-blue-400 group-hover:bg-blue-900 group-hover:text-blue-300"
+          }`}>
+          {icon}
+        </div>
+        <div className="min-w-0">
+          <p className={`font-semibold text-sm mb-0.5 transition-colors
+            ${dim ? "text-gray-400 group-hover:text-gray-200" : "text-white"}`}>
+            {suggestion.test}
+          </p>
+          <p className="text-gray-600 text-xs leading-relaxed line-clamp-2">{suggestion.reason}</p>
+        </div>
+      </div>
+    </motion.button>
   )
 }
