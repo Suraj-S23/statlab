@@ -413,7 +413,10 @@ export default function App() {
       <nav style={{ ...s.nav, position: "fixed", top: 0, left: 0, right: 0, zIndex: 50 }}>
         <div style={s.navInner}>
           <button style={s.logo} onClick={handleReset}>
-            <img src="/labrat-logo-final.svg" alt="LabRat" style={{ height: 36, width: "auto" }} />
+            <img src="/logo.png" alt="LabRat" style={{ height: 32, width: "auto" }} />
+            <span style={{ fontFamily: "var(--font-sans)", fontSize: 17, fontWeight: 700, letterSpacing: "-0.3px", color: "var(--text)", lineHeight: 1 }}>
+              Lab<span style={{ color: "var(--accent-text)" }}>Rat</span>
+            </span>
           </button>
 
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -455,17 +458,17 @@ export default function App() {
               <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "55%", background: "linear-gradient(to bottom, transparent 0%, rgba(3,7,18,0.85) 45%, #030712 80%)", pointerEvents: "none", zIndex: 1 }} />
 
               {/* Plot label — top right, close to the plot */}
-              <div style={{ position: "absolute", top: NAV_H + 12, right: 32, zIndex: 3, display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ position: "absolute", top: NAV_H + 12, right: 32, zIndex: 3, display: "flex", alignItems: "center", gap: 8, background: isDark ? "transparent" : "rgba(248,250,252,0.7)", backdropFilter: isDark ? "none" : "blur(8px)", padding: isDark ? 0 : "3px 10px", borderRadius: 6 }}>
                 <span style={{ background: "var(--accent-dim)", color: "var(--accent-text)", fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 4, textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "var(--font-mono)", border: "1px solid rgba(45,212,191,0.2)" }}>
                   {t("landing.plotType")}
                 </span>
-                <span style={{ color: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-mono)" }}>
+                <span style={{ color: "rgba(148,163,184,0.85)", fontSize: 10, fontFamily: "var(--font-mono)" }}>
                   {t("landing.plotLabel")} · {t("landing.dragHint")}
                 </span>
               </div>
 
               {/* Hero content: headline top-center, steps + pills anchored to bottom */}
-              <div style={{ position: "absolute", inset: 0, zIndex: 2, display: "flex", flexDirection: "column", justifyContent: "space-between", paddingTop: NAV_H, maxWidth: 1400, margin: "0 auto", left: 0, right: 0, padding: `${NAV_H}px 32px 36px` }}>
+              <div style={{ position: "absolute", inset: 0, zIndex: 2, display: "flex", flexDirection: "column", justifyContent: "space-between", paddingTop: NAV_H, maxWidth: 1400, margin: "0 auto", left: 0, right: 0, padding: `${NAV_H}px 32px 36px`, pointerEvents: "none" }}>
 
                 {/* Headline — centered, upper half */}
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", paddingBottom: 20 }}>
@@ -473,26 +476,26 @@ export default function App() {
                     <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--accent)", display: "inline-block", flexShrink: 0 }} />
                     <span style={{ color: "var(--accent-text)", fontSize: 10, fontWeight: 600, fontFamily: "var(--font-mono)", letterSpacing: "0.1em" }}>{t("landing.badge")}</span>
                   </div>
-                  <h1 style={{ color: "var(--text)", fontFamily: "var(--font-sans)", fontSize: "clamp(38px, 4.2vw, 60px)", fontWeight: 700, lineHeight: 1.08, margin: "0 0 16px", letterSpacing: "-0.03em", textShadow: "0 2px 32px rgba(3,7,18,0.7)" }}>
+                  <h1 style={{ color: "#f1f5f9", fontFamily: "var(--font-sans)", fontSize: "clamp(38px, 4.2vw, 60px)", fontWeight: 700, lineHeight: 1.08, margin: "0 0 16px", letterSpacing: "-0.03em", textShadow: "0 2px 32px rgba(3,7,18,0.7)" }}>
                     {t("landing.headline1")}<br />
                     <span style={{ color: "var(--accent-text)" }}>{t("landing.headline2")}</span>
                   </h1>
-                  <p style={{ color: "rgba(148,163,184,0.88)", fontSize: 15, lineHeight: 1.7, maxWidth: 480, textShadow: "0 1px 10px rgba(3,7,18,0.95)" }}>
+                  <p style={{ color: "rgba(226,232,240,0.92)", fontSize: 15, lineHeight: 1.7, maxWidth: 480, textShadow: "0 1px 14px rgba(3,7,18,1), 0 0 40px rgba(3,7,18,0.9)" }}>
                     {t("landing.subtitle")}
                   </p>
                 </div>
 
-                {/* Steps — anchored to bottom of hero, frosted glass */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", border: "1px solid rgba(45,212,191,0.1)", borderRadius: 12, background: "rgba(3,7,18,0.55)", backdropFilter: "blur(10px)", overflow: "hidden" }}>
+                {/* Steps — anchored to bottom of hero, frosted glass — always dark bg so always light text */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", border: "1px solid rgba(45,212,191,0.1)", borderRadius: 12, background: "rgba(3,7,18,0.62)", backdropFilter: "blur(10px)", overflow: "hidden", pointerEvents: "auto" }}>
                   {([
                     { step: "01", title: "Automatic test selection", desc: "LabRat inspects your data and recommends the most appropriate statistical test." },
                     { step: "02", title: "Publication-ready charts", desc: "Download plots as high-resolution PNG, formatted PDF or raw CSV data for further analysis." },
                     { step: "03", title: "No account required", desc: "Upload file. Get result. No login, no tracking." },
                   ]).map(({ step, title, desc }, i) => (
                     <div key={step} style={{ padding: "20px 24px", borderRight: i < 2 ? "1px solid rgba(45,212,191,0.1)" : "none" }}>
-                      <span style={{ color: "var(--accent-text)", fontSize: 10, fontFamily: "var(--font-mono)", fontWeight: 600 }}>{step}</span>
-                      <h3 style={{ color: "var(--text)", fontWeight: 600, fontSize: 12.5, margin: "7px 0 5px" }}>{title}</h3>
-                      <p style={{ color: "var(--text-muted)", fontSize: 11.5, lineHeight: 1.6, margin: 0 }}>{desc}</p>
+                      <span style={{ color: "#2dd4bf", fontSize: 10, fontFamily: "var(--font-mono)", fontWeight: 600 }}>{step}</span>
+                      <h3 style={{ color: "#f1f5f9", fontWeight: 600, fontSize: 12.5, margin: "7px 0 5px" }}>{title}</h3>
+                      <p style={{ color: "rgba(203,213,225,0.92)", fontSize: 11.5, lineHeight: 1.6, margin: 0 }}>{desc}</p>
                     </div>
                   ))}
                 </div>
