@@ -27,6 +27,7 @@ import RegressionResults from "./components/RegressionResults"
 import ChiSquareResults from "./components/ChiSquareResults"
 import DoseResponseResults from "./components/DoseResponseResults"
 import KaplanMeierResults from "./components/KaplanMeierResults"
+import SampleDatasets from "./components/SampleDatasets"
 import {
   runDescriptive, runTwoGroup, runAnova, runCorrelation,
   runRegression, runChiSquare, runDoseResponse, runKaplanMeier,
