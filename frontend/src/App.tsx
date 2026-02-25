@@ -506,8 +506,10 @@ export default function App() {
 
             {/* ── Below fold: upload + pills ── */}
             <div style={{ maxWidth: 1400, margin: "0 auto", padding: "48px 32px 80px", display: "grid", gridTemplateColumns: "480px 1fr", gap: 48, alignItems: "start" }}>
-              <UploadZone onUpload={setData} />
-              <SampleDatasets onUpload={setData} />
+              <div>
+                <UploadZone onUpload={setData} />
+                <SampleDatasets onUpload={setData} />
+              </div>
               <div style={{ paddingTop: 8 }}>
                 <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.15em", textTransform: "uppercase" as const, marginBottom: 14 }}>
                   Available analyses
