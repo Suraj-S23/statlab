@@ -29,7 +29,7 @@ export default {
       s3title: "Exporter les résultats",
       s3desc: "Téléchargez en rapports PDF, graphiques PNG ou CSV pour une analyse approfondie.",
     },
-    footer: "LabRat — analyse statistique pour les chercheurs",
+    footer: "LabRat: analyse statistique pour les chercheurs",
   },
   common: {
     back: "← Retour",
