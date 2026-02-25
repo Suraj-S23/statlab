@@ -298,6 +298,7 @@ function LanguageSwitcher() {
 
 export default function App() {
   const { t } = useTranslation()
+  const { isDark } = useTheme() 
   const [data, setData] = useState<UploadResponse | null>(null)
   const [selectedTest, setSelectedTest] = useState<string | null>(null)
   const [results, setResults] = useState<AnyResults | null>(null)
