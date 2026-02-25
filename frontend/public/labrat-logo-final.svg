@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 355 219" role="img" aria-label="LabRat logo">
+  <!-- no background — transparent -->
+
+  <!-- body parts -->
+  <g fill="#e8f2fc">
+    <path d="M 168 195 L 214 196 L 203 188 L 182 188 Z"/>
+    <path d="M 224 170 L 241 195 L 274 196 L 265 190 L 252 187 L 237 168 Z"/>
+    <path d="M 32 168 L 46 195 L 78 196 L 76 187 L 49 187 Z"/>
+    <path d="M 105 93 L 85 142 L 86 174 L 99 176 L 99 146 L 113 145 L 114 176 L 118 176 L 118 124 L 120 122 L 133 124 L 133 175 L 137 175 L 138 140 L 151 140 L 153 143 L 153 172 L 160 168 L 167 170 L 173 167 L 181 133 L 180 127 L 113 94 Z"/>
+    <path d="M 282 71 L 250 84 L 229 112 L 238 128 L 252 88 Z"/>
+    <path d="M 161 61 L 115 86 L 190 122 L 191 131 L 183 160 L 185 161 L 191 155 L 212 106 Z"/>
+    <path d="M 174 54 L 244 80 L 262 70 L 292 60 L 301 48 L 271 36 L 235 33 L 220 20 L 204 21 L 223 58 L 222 60 L 210 44 Z"/>
+  </g>
+
+  <!-- eye -->
+  <circle cx="325.88" cy="91.19" r="7.21" fill="#5aa4e1" opacity="0"/>
+  <!-- (eye is part of head shape above — leaving dot for pupil) -->
+
+  <!-- regression line segments — teal -->
+  <path d="M 317 96 L 297 107 L 281 117 L 282 119 L 296 110 L 303 107 L 316 99 Z" fill="#2dd4bf"/>
+  <path d="M 260 131 L 240 142 L 239 144 L 235 145 L 229 149 L 229 151 L 231 151 L 246 141 L 261 133 Z" fill="#2dd4bf"/>
+  <path d="M 207 162 L 172 176 L 171 179 L 207 164 Z" fill="#2dd4bf"/>
+  <path d="M 150 184 L 136 184 L 135 185 L 104 187 L 104 190 L 105 189 L 148 186 Z" fill="#2dd4bf"/>
+
+  <!-- dots — teal -->
+  <circle cx="325.88" cy="91.19"  r="7.21" fill="#2dd4bf"/>
+  <circle cx="270.25" cy="125.00" r="8.31" fill="#2dd4bf"/>
+  <circle cx="217.87" cy="156.66" r="8.30" fill="#2dd4bf"/>
+  <circle cx="160.88" cy="182.81" r="7.21" fill="#2dd4bf"/>
+  <circle cx="92.11"  cy="189.44" r="8.26" fill="#2dd4bf"/>
+</svg>

@@ -413,7 +413,7 @@ export default function App() {
       <nav style={{ ...s.nav, position: "fixed", top: 0, left: 0, right: 0, zIndex: 50 }}>
         <div style={s.navInner}>
           <button style={s.logo} onClick={handleReset}>
-            <img src="/logo.png" alt="LabRat" style={{ height: 36, width: "auto" }} />
+            <img src="/labrat-logo-final.svg" alt="LabRat" style={{ height: 36, width: "auto" }} />
           </button>
 
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
