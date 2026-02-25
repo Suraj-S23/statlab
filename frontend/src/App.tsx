@@ -27,7 +27,6 @@ import RegressionResults from "./components/RegressionResults"
 import ChiSquareResults from "./components/ChiSquareResults"
 import DoseResponseResults from "./components/DoseResponseResults"
 import KaplanMeierResults from "./components/KaplanMeierResults"
-import ExportMenu from "./components/ExportMenu"
 import {
   runDescriptive, runTwoGroup, runAnova, runCorrelation,
   runRegression, runChiSquare, runDoseResponse, runKaplanMeier,
@@ -297,63 +296,6 @@ function LanguageSwitcher() {
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 
-// Flatten any result type into CSV-friendly rows
-function flattenForCsv(results: AnyResults): Record<string, unknown>[] {
-  switch (results.type) {
-    case "descriptive": {
-      const cols = Object.keys(results.data)
-      const keys = ["count","mean","median","std","min","max","q1","q3","iqr","skewness","kurtosis","outliers"]
-      return keys.map(k => {
-        const row: Record<string, unknown> = { statistic: k }
-        cols.forEach(col => { row[col] = (results.data[col] as unknown as Record<string, unknown>)[k] })
-        return row
-      })
-    }
-    case "two-group": {
-      const rows: Record<string, unknown>[] = []
-      Object.entries(results.data.groups).forEach(([grp, g]) => {
-        rows.push({ group: grp, n: g.n, mean: g.mean, median: g.median, std: g.std, normality: g.normality })
-      })
-      rows.push({ group: "t-test", statistic: results.data.t_test.statistic, p_value: results.data.t_test.p_value, significant: results.data.t_test.significant })
-      rows.push({ group: "Mann-Whitney U", statistic: results.data.mann_whitney.statistic, p_value: results.data.mann_whitney.p_value, significant: results.data.mann_whitney.significant })
-      return rows
-    }
-    case "anova": {
-      const rows: Record<string, unknown>[] = []
-      Object.entries(results.data.groups).forEach(([grp, g]) => {
-        rows.push({ group: grp, n: g.n, mean: g.mean, std: g.std })
-      })
-      rows.push({ group: "ANOVA", f_statistic: results.data.anova.f_statistic, p_value: results.data.anova.p_value, significant: results.data.anova.significant })
-      rows.push({ group: "Kruskal-Wallis", h_statistic: results.data.kruskal_wallis.h_statistic, p_value: results.data.kruskal_wallis.p_value, significant: results.data.kruskal_wallis.significant })
-      return rows
-    }
-    case "correlation":
-      return [
-        { test: "Pearson r", coefficient: results.data.pearson.r, p_value: results.data.pearson.p_value, significant: results.data.pearson.significant },
-        { test: "Spearman rho", coefficient: results.data.spearman.rho, p_value: results.data.spearman.p_value, significant: results.data.spearman.significant },
-      ]
-    case "regression":
-      return [{ slope: results.data.slope, intercept: results.data.intercept, r_squared: results.data.r_squared, r: results.data.r_value, p_value: results.data.p_value, std_err: results.data.std_err, n: results.data.n, significant: results.data.significant }]
-    case "chi-square": {
-      const rows: Record<string, unknown>[] = [
-        { test: "Chi-Square", statistic: results.data.chi_square.statistic, dof: results.data.chi_square.dof, p_value: results.data.chi_square.p_value, significant: results.data.chi_square.significant },
-      ]
-      if (results.data.fisher) rows.push({ test: "Fisher Exact", odds_ratio: results.data.fisher.odds_ratio, p_value: results.data.fisher.p_value, significant: results.data.fisher.significant })
-      return rows
-    }
-    case "dose-response":
-      return [{ ic50: results.data.ic50, hill_slope: results.data.hill_slope, bottom: results.data.bottom, top: results.data.top, r_squared: results.data.r_squared, n: results.data.n }]
-    case "kaplan-meier": {
-      if (results.data.groups) {
-        return Object.entries(results.data.groups).map(([grp, g]) => ({ group: grp, n: g.n, median_survival: g.median_survival ?? "not reached" }))
-      }
-      return [{ n: results.data.n, median_survival: results.data.median_survival ?? "not reached" }]
-    }
-    default: return []
-  }
-}
-
-
 export default function App() {
   const { t } = useTranslation()
   const [data, setData] = useState<UploadResponse | null>(null)
@@ -452,27 +394,26 @@ export default function App() {
   const s: Record<string, React.CSSProperties> = {
     root: { minHeight: "100vh", background: "var(--bg)", color: "var(--text)", fontFamily: "var(--font-sans)" },
     nav: { position: "sticky", top: 0, zIndex: 50, background: "var(--nav-bg)", backdropFilter: "blur(12px)", borderBottom: "1px solid var(--border)" },
-    navInner: { maxWidth: 1100, margin: "0 auto", padding: "0 28px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between" },
+    navInner: { maxWidth: 1400, margin: "0 auto", padding: "0 32px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between" },
     logo: { display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", padding: 0 },
     logoBox: { width: 28, height: 28, borderRadius: 8, background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center" },
     logoText: { color: "var(--text)", fontWeight: 700, fontSize: 14, fontFamily: "var(--font-sans)" },
-    main: { maxWidth: 1100, margin: "0 auto", padding: "0 28px 80px" },
+    main: { maxWidth: 1400, margin: "0 auto", padding: "0 32px 80px" },
     footer: { borderTop: "1px solid var(--border)", marginTop: 80 },
-    footerInner: { maxWidth: 1100, margin: "0 auto", padding: "0 28px", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" },
+    footerInner: { maxWidth: 1400, margin: "0 auto", padding: "0 32px", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" },
   }
+
+  const NAV_H = 52
 
   return (
     <div style={s.root}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
-      {/* Nav */}
-      <nav style={s.nav}>
+      {/* Nav — fixed so hero can go full-bleed behind it */}
+      <nav style={{ ...s.nav, position: "fixed", top: 0, left: 0, right: 0, zIndex: 50 }}>
         <div style={s.navInner}>
           <button style={s.logo} onClick={handleReset}>
-            <div style={s.logoBox}>
-              <img src="/LabRat_Logo.png" alt="LabRat" style={{ height: 32, width: "auto" }} />
-            </div>
-            <span style={s.logoText}>LabRat</span>
+            <img src="/logo.png" alt="LabRat" style={{ height: 36, width: "auto" }} />
           </button>
 
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -492,134 +433,135 @@ export default function App() {
         </div>
       </nav>
 
-      <main style={s.main}>
-        <AnimatePresence mode="wait">
-          {!data ? (
-            /* ── Landing page ── */
-            <motion.div key="landing" variants={pageVariants}
-              initial="initial" animate="animate" exit="exit"
-              transition={{ duration: 0.25 }}>
+      <AnimatePresence mode="wait">
+        {!data ? (
+          /* ── Landing page ── */
+          <motion.div key="landing" variants={pageVariants}
+            initial="initial" animate="animate" exit="exit"
+            transition={{ duration: 0.25 }}>
 
-              {/* Centered hero */}
-              <div style={{ textAlign: "center", paddingTop: 56, paddingBottom: 32 }}>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--accent-dim)", border: "1px solid var(--accent)", borderRadius: 20, padding: "4px 12px", marginBottom: 18, opacity: 0.9 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", display: "inline-block" }} />
-                  <span style={{ color: "var(--accent-text)", fontSize: 11, fontWeight: 600, fontFamily: "var(--font-mono)" }}>
-                    {t("landing.badge")}
-                  </span>
+            {/* ── Full-bleed hero ── */}
+            <div style={{ position: "relative", height: "100vh", minHeight: 620, overflow: "hidden" }}>
+
+              {/* 3D plot fills entire hero */}
+              <div style={{ position: "absolute", inset: 0 }}>
+                <Bivariateplot />
+              </div>
+
+              {/* Top fade — nav readability */}
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 160, background: "linear-gradient(to bottom, rgba(3,7,18,0.75), transparent)", pointerEvents: "none", zIndex: 1 }} />
+
+              {/* Bottom fade — content readability */}
+              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "55%", background: "linear-gradient(to bottom, transparent 0%, rgba(3,7,18,0.85) 45%, #030712 80%)", pointerEvents: "none", zIndex: 1 }} />
+
+              {/* Plot label — top right, close to the plot */}
+              <div style={{ position: "absolute", top: NAV_H + 12, right: 32, zIndex: 3, display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ background: "var(--accent-dim)", color: "var(--accent-text)", fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 4, textTransform: "uppercase" as const, letterSpacing: "0.08em", fontFamily: "var(--font-mono)", border: "1px solid rgba(45,212,191,0.2)" }}>
+                  {t("landing.plotType")}
+                </span>
+                <span style={{ color: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-mono)" }}>
+                  {t("landing.plotLabel")} · {t("landing.dragHint")}
+                </span>
+              </div>
+
+              {/* Hero content: headline top-center, steps + pills anchored to bottom */}
+              <div style={{ position: "absolute", inset: 0, zIndex: 2, display: "flex", flexDirection: "column", justifyContent: "space-between", paddingTop: NAV_H, maxWidth: 1400, margin: "0 auto", left: 0, right: 0, padding: `${NAV_H}px 32px 36px` }}>
+
+                {/* Headline — centered, upper half */}
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", paddingBottom: 20 }}>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(3,7,18,0.55)", border: "1px solid rgba(45,212,191,0.45)", backdropFilter: "blur(8px)", borderRadius: 20, padding: "4px 14px", marginBottom: 22 }}>
+                    <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--accent)", display: "inline-block", flexShrink: 0 }} />
+                    <span style={{ color: "var(--accent-text)", fontSize: 10, fontWeight: 600, fontFamily: "var(--font-mono)", letterSpacing: "0.1em" }}>{t("landing.badge")}</span>
+                  </div>
+                  <h1 style={{ color: "var(--text)", fontFamily: "var(--font-sans)", fontSize: "clamp(38px, 4.2vw, 60px)", fontWeight: 700, lineHeight: 1.08, margin: "0 0 16px", letterSpacing: "-0.03em", textShadow: "0 2px 32px rgba(3,7,18,0.7)" }}>
+                    {t("landing.headline1")}<br />
+                    <span style={{ color: "var(--accent-text)" }}>{t("landing.headline2")}</span>
+                  </h1>
+                  <p style={{ color: "rgba(148,163,184,0.88)", fontSize: 15, lineHeight: 1.7, maxWidth: 480, textShadow: "0 1px 10px rgba(3,7,18,0.95)" }}>
+                    {t("landing.subtitle")}
+                  </p>
                 </div>
 
-                <h1 style={{ color: "var(--text)", fontFamily: "var(--font-sans)", fontSize: "clamp(28px, 5vw, 44px)", fontWeight: 700, lineHeight: 1.15, margin: "0 0 14px", letterSpacing: "-0.02em" }}>
-                  {t("landing.headline1")}<br />
-                  <span style={{ color: "var(--accent-text)" }}>{t("landing.headline2")}</span>
-                </h1>
+                {/* Steps — anchored to bottom of hero, frosted glass */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", border: "1px solid rgba(45,212,191,0.1)", borderRadius: 12, background: "rgba(3,7,18,0.55)", backdropFilter: "blur(10px)", overflow: "hidden" }}>
+                  {([
+                    { step: "01", title: "Automatic test selection", desc: "LabRat inspects your data and recommends the most appropriate statistical test." },
+                    { step: "02", title: "Publication-ready charts", desc: "Download plots as high-resolution PNG, formatted PDF or raw CSV data for further analysis." },
+                    { step: "03", title: "No account required", desc: "Upload file. Get result. No login, no tracking." },
+                  ]).map(({ step, title, desc }, i) => (
+                    <div key={step} style={{ padding: "20px 24px", borderRight: i < 2 ? "1px solid rgba(45,212,191,0.1)" : "none" }}>
+                      <span style={{ color: "var(--accent-text)", fontSize: 10, fontFamily: "var(--font-mono)", fontWeight: 600 }}>{step}</span>
+                      <h3 style={{ color: "var(--text)", fontWeight: 600, fontSize: 12.5, margin: "7px 0 5px" }}>{title}</h3>
+                      <p style={{ color: "var(--text-muted)", fontSize: 11.5, lineHeight: 1.6, margin: 0 }}>{desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
 
-                <p style={{ color: "var(--text-muted)", fontSize: 15, lineHeight: 1.65, maxWidth: 480, margin: "0 auto 28px" }}>
-                  {t("landing.subtitle")}
-                </p>
-
-                {/* Feature pills */}
-                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 6, marginBottom: 36 }}>
+            {/* ── Below fold: upload + pills ── */}
+            <div style={{ maxWidth: 1400, margin: "0 auto", padding: "48px 32px 80px", display: "grid", gridTemplateColumns: "480px 1fr", gap: 48, alignItems: "start" }}>
+              <UploadZone onUpload={setData} />
+              <div style={{ paddingTop: 8 }}>
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.15em", textTransform: "uppercase" as const, marginBottom: 14 }}>
+                  Available analyses
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
                   {(["descriptive", "ttest", "anova", "correlation", "regression", "chi", "dose", "km"] as const).map(k => (
-                    <span key={k} style={{ fontSize: 11, color: "var(--text-muted)", background: "var(--surface)", border: "1px solid var(--border)", padding: "4px 11px", borderRadius: 20, fontFamily: "var(--font-mono)" }}>
+                    <span key={k} style={{ fontSize: 11, color: "var(--text-muted)", background: "var(--surface)", border: "1px solid var(--border)", padding: "6px 12px", borderRadius: 4, fontFamily: "var(--font-mono)", letterSpacing: "0.03em" }}>
                       {t(`landing.pills.${k}`)}
                     </span>
                   ))}
                 </div>
               </div>
+            </div>
 
-              {/* Upload zone */}
-              <div style={{ maxWidth: 600, margin: "0 auto 0" }}>
-                <UploadZone onUpload={setData} />
+            {/* Footer */}
+            <footer style={s.footer}>
+              <div style={s.footerInner}>
+                <span style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-mono)" }}>{t("landing.footer")}</span>
+                <span style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-mono)" }}>FastAPI · React · Redis</span>
               </div>
+            </footer>
+          </motion.div>
 
-              {/* 3D plot */}
-              <div style={{ marginTop: 48, border: "1px solid var(--border)", borderRadius: 16, overflow: "hidden", background: "var(--bg-alt)" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderBottom: "1px solid var(--border)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ background: "var(--accent-dim)", color: "var(--accent-text)", fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 4, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-mono)" }}>
-                      {t("landing.plotType")}
-                    </span>
-                    <span style={{ color: "var(--text)", fontSize: 12, fontWeight: 600 }}>
-                      {t("landing.plotLabel")}
-                    </span>
-                  </div>
-                  <span style={{ color: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-mono)" }}>
-                    {t("landing.dragHint")}
-                  </span>
-                </div>
-                <div style={{ height: 300 }}>
-                  <Bivariateplot />
-                </div>
+        ) : (
+          /* ── Workspace ── */
+          <>
+            <main style={{ ...s.main, paddingTop: NAV_H + 24 }}>
+              <motion.div key="workspace" variants={pageVariants}
+                initial="initial" animate="animate" exit="exit"
+                transition={{ duration: 0.25 }}>
+
+                <DataPreview data={data} onReset={handleReset} />
+
+                {error && (
+                  <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                    style={{ marginTop: 10, padding: "10px 14px", borderRadius: 10, border: "1px solid #7f1d1d", background: "#450a0a", color: "#fca5a5", fontSize: 13 }}>
+                    {error}
+                  </motion.div>
+                )}
+
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={results ? "results" : (selectedTest ?? "suggestions")}
+                    variants={pageVariants} initial="initial" animate="animate" exit="exit"
+                    transition={{ duration: 0.2 }}>
+                    {results ? renderResults() : renderSelector()}
+                  </motion.div>
+                </AnimatePresence>
+              </motion.div>
+            </main>
+
+            <footer style={s.footer}>
+              <div style={s.footerInner}>
+                <span style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-mono)" }}>{t("landing.footer")}</span>
+                <span style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-mono)" }}>FastAPI · React · Redis</span>
               </div>
-
-              {/* How it works */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginTop: 20 }}>
-                {([
-                  { step: "01", titleKey: "landing.steps.s1title", descKey: "landing.steps.s1desc" },
-                  { step: "02", titleKey: "landing.steps.s2title", descKey: "landing.steps.s2desc" },
-                  { step: "03", titleKey: "landing.steps.s3title", descKey: "landing.steps.s3desc" },
-                ]).map(({ step, titleKey, descKey }) => (
-                  <div key={step} style={{ padding: "18px 20px", border: "1px solid var(--border)", borderRadius: 14, background: "var(--surface)" }}>
-                    <span style={{ color: "var(--accent-text)", fontSize: 10, fontFamily: "var(--font-mono)", fontWeight: 600 }}>{step}</span>
-                    <h3 style={{ color: "var(--text)", fontWeight: 600, fontSize: 13, margin: "6px 0 6px" }}>{t(titleKey)}</h3>
-                    <p style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.6, margin: 0 }}>{t(descKey)}</p>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          ) : (
-            /* ── Workspace ── */
-            <motion.div key="workspace" variants={pageVariants}
-              initial="initial" animate="animate" exit="exit"
-              transition={{ duration: 0.25 }} style={{ paddingTop: 24 }}>
-
-              <DataPreview data={data} onReset={handleReset} />
-
-              {error && (
-                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                  style={{ marginTop: 10, padding: "10px 14px", borderRadius: 10, border: "1px solid #7f1d1d", background: "#450a0a", color: "#fca5a5", fontSize: 13 }}>
-                  {error}
-                </motion.div>
-              )}
-
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={results ? "results" : (selectedTest ?? "suggestions")}
-                  variants={pageVariants} initial="initial" animate="animate" exit="exit"
-                  transition={{ duration: 0.2 }}>
-                  {results ? (
-                    <>
-                      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-                        <ExportMenu
-                          filename={results.type}
-                          pdfTitle={results.type.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
-                          pdfSubtitle={data?.filename ?? ""}
-                          csvData={flattenForCsv(results)}
-                          hasChart={results.type !== "chi-square"}
-                        />
-                      </div>
-                      {renderResults()}
-                    </>
-                  ) : renderSelector()}
-                </motion.div>
-              </AnimatePresence>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
-
-      {/* Footer */}
-      <footer style={s.footer}>
-        <div style={s.footerInner}>
-          <span style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-mono)" }}>
-            {t("landing.footer")}
-          </span>
-          <span style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-mono)" }}>
-            FastAPI · React · Redis
-          </span>
-        </div>
-      </footer>
+            </footer>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

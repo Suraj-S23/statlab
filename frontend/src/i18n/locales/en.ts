@@ -7,7 +7,7 @@ export default {
     badge: "open source · no account required",
     headline1: "Statistical analysis",
     headline2: "for researchers",
-    subtitle: "Upload a CSV and run professional-grade statistical tests — t-tests, ANOVA, regression, survival analysis and more.",
+    subtitle: "Upload a CSV and run professional-grade statistical tests: t-tests, ANOVA, regression, survival analysis and more.",
     pills: {
       descriptive: "Descriptive statistics",
       ttest: "t-test & Mann-Whitney",
