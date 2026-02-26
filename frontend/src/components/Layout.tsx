@@ -102,7 +102,7 @@ export default function Layout() {
           }}
         >
           <img
-            src="/labrat-logo-svg.svg"
+            src="/labrat-logo-final.svg"
             alt="LabRat"
             width={22}
             height={22}
