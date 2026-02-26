@@ -5,7 +5,7 @@ Initialises FastAPI, configures CORS, and registers all routers.
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import upload, suggest, analysis
+from routers import upload, suggest, analysis, export
 
 app = FastAPI(
     title="LabRat API",
@@ -29,6 +29,7 @@ app.add_middleware(
 app.include_router(upload.router, prefix="/api")
 app.include_router(suggest.router, prefix="/api")
 app.include_router(analysis.router, prefix="/api")
+app.include_router(export.router, prefix="/api")
 
 
 @app.get("/")

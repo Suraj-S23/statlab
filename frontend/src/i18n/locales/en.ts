@@ -29,7 +29,7 @@ export default {
       s3title: "Export your results",
       s3desc: "Download as PDF reports, PNG charts, or CSV for further analysis.",
     },
-    footer: "LabRat — statistical analysis for researchers",
+    footer: "LabRat: statistical analysis for researchers",
   },
   common: {
     back: "← Back",
@@ -157,4 +157,63 @@ export default {
     medianSurvivalShort: "Median survival",
     survivalProbability: "Survival probability over time",
   },
+  layout: {
+    brand: "LabRat",
+    nav: {
+      app: "App",
+      samples: "Samples",
+      methods: "Methods",
+      docs: "Docs",
+      privacy: "Privacy",
+    },
+  },
+
+  samples: {
+    kicker: "Demo datasets",
+    title: "Samples",
+    subtitle:
+      "Each dataset is curated to demonstrate one analysis end-to-end. Click a card to go to the app, then select the matching sample to load it instantly.",
+    openInApp: "Open in App →",
+    heroLabel: "Hero analysis:",
+  },
+
+  samplesInline: {
+    kicker: "or try a sample dataset",
+    tryIt: "Try it →",
+    loading: "Loading…",
+    errors: {
+      loadSample: "Could not load sample file",
+      failed: "Failed to load sample",
+    },
+  },
+
+  docs: {
+    kicker: "Usage guide",
+    title: "Docs",
+    subtitle: "CSV requirements, column handling, exports, session lifecycle, and troubleshooting.",
+    sections: {
+      csv: { title: "CSV format", desc: "What LabRat expects from your file", content: [/*...*/] },
+      types: { title: "Column type inference", desc: "How numeric, categorical, and boolean types are detected", content: [/*...*/] },
+      missing: { title: "Missing values", desc: "How NaN values are handled per analysis", content: [/*...*/] },
+      export: { title: "Export formats", desc: "What each download option produces", content: [/*...*/] },
+      session: { title: "Session & data lifecycle", desc: "How long your data stays on the server", content: [/*...*/] },
+      trouble: { title: "Troubleshooting", desc: "Common errors and how to fix them", content: [/*...*/] },
+    },
+  },
+
+  privacy: {
+    kicker: "Trust & transparency",
+    title: "Privacy",
+    subtitle: "Exactly what happens to your data when you use LabRat.",
+    items: {
+      sent: { title: "What is sent to the server", text: "..." },
+      retention: { title: "How long data is retained", text: "..." },
+      never: { title: "What is never stored", text: "..." },
+      browser: { title: "What stays in the browser", text: "..." },
+      third: { title: "Third parties", text: "..." },
+      guidance: { title: "Research data guidance", text: "..." },
+    },
+    contact: "Questions about data handling? Open an issue on",
+  },
 }
+

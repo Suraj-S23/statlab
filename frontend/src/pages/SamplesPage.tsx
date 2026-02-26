@@ -2,8 +2,8 @@
  * SamplesPage — curated demo dataset gallery at "/samples".
  * Each card navigates to /app, where the user can pick and load the sample.
  */
-
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 
 const NAV_H = 52
 
@@ -11,7 +11,7 @@ const SAMPLES = [
   {
     id: "clinical",
     title: "Clinical Trial",
-    desc: "Blood-pressure drug vs placebo in 80 patients. Compare groups, test response rates.",
+    desc: "Blood-pressure drug vs placebo in 80 patients.\nCompare groups, test response rates.",
     tags: ["t-test", "Chi-square", "Descriptive"],
     hero: "Independent t-test / Mann-Whitney U",
     accent: "rgba(45,212,191,0.12)",
@@ -27,7 +27,7 @@ const SAMPLES = [
   {
     id: "survival",
     title: "Cancer Survival Study",
-    desc: "Immunotherapy vs chemotherapy in 90 patients. Estimate and compare survival curves.",
+    desc: "Immunotherapy vs chemotherapy in 90 patients.\nEstimate and compare survival curves.",
     tags: ["Kaplan-Meier", "Log-rank test"],
     hero: "Kaplan-Meier Survival Analysis",
     accent: "rgba(251,146,60,0.12)",
@@ -40,102 +40,110 @@ const SAMPLES = [
     hero: "One-Way ANOVA",
     accent: "rgba(52,211,153,0.12)",
   },
-]
+] as const
 
 export default function SamplesPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   return (
-    <>
-      <div style={{ maxWidth: 1000, margin: "0 auto", padding: `${NAV_H + 48}px 32px 80px` }}>
-        <div style={{ marginBottom: 40 }}>
-          <p style={{
-            color: "var(--text-muted)", fontFamily: "var(--font-mono)",
-            fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase" as const, marginBottom: 10,
-          }}>
-            Demo datasets
-          </p>
-          <h1 style={{
-            color: "var(--text)", fontWeight: 700, fontSize: 28,
-            margin: "0 0 10px", letterSpacing: "-0.3px",
-          }}>
-            Samples
-          </h1>
-          <p style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6, maxWidth: 480, margin: 0 }}>
-            Each dataset is curated to demonstrate one analysis end-to-end. Click a card to go to the
-            app — then select the matching sample to load it instantly.
-          </p>
-        </div>
+    <div style={{ paddingTop: NAV_H + 28, maxWidth: 980, margin: "0 auto" }}>
+      <p style={{ color: "var(--text-muted)", marginBottom: 8 }}>
+        {t("samples.kicker")}
+      </p>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
-          {SAMPLES.map(s => (
+      <h1 style={{ margin: "0 0 10px 0" }}>{t("samples.title")}</h1>
+
+      <p style={{ color: "var(--text-muted)", marginTop: 0 }}>
+        {t("samples.subtitle")}
+      </p>
+
+      <div style={{ display: "grid", gap: 14, marginTop: 18 }}>
+        {SAMPLES.map((s) => (
+          <div
+            key={s.id}
+            onClick={() => navigate("/app")}
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              borderRadius: 14,
+              padding: "22px 24px",
+              cursor: "pointer",
+              transition: "border-color 0.15s",
+            }}
+            onMouseEnter={(e) =>
+              ((e.currentTarget as HTMLDivElement).style.borderColor =
+                "var(--accent)")
+            }
+            onMouseLeave={(e) =>
+              ((e.currentTarget as HTMLDivElement).style.borderColor =
+                "var(--border)")
+            }
+          >
+            {/* Icon row */}
             <div
-              key={s.id}
-              onClick={() => navigate("/app")}
               style={{
-                background: "var(--surface)", border: "1px solid var(--border)",
-                borderRadius: 14, padding: "22px 24px", cursor: "pointer",
-                transition: "border-color 0.15s",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 12,
               }}
-              onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = "var(--accent)"}
-              onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border)"}
             >
-              {/* Icon row */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
-                <div style={{
-                  width: 44, height: 44, borderRadius: 12,
-                  background: s.accent, border: "1px solid var(--border)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  {/* Simple monogram letter as icon */}
-                  <span style={{ color: "var(--accent-text)", fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 14 }}>
-                    {s.title[0]}
-                  </span>
-                </div>
-                <span style={{
-                  fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--accent-text)",
-                  background: "var(--accent-dim)", borderRadius: 5, padding: "2px 8px",
-                  border: "1px solid rgba(45,212,191,0.15)",
-                }}>
-                  Open in App →
-                </span>
+              <div
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 10,
+                  background: s.accent,
+                  display: "grid",
+                  placeItems: "center",
+                  fontWeight: 700,
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                {s.title[0]}
               </div>
 
-              <h3 style={{ color: "var(--text)", fontWeight: 600, fontSize: 14, margin: "0 0 6px" }}>{s.title}</h3>
-              <p style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.6, margin: "0 0 14px" }}>{s.desc}</p>
-
-              {/* Tags */}
-              <div style={{ display: "flex", gap: 5, flexWrap: "wrap" as const, marginBottom: 14 }}>
-                {s.tags.map(tag => (
-                  <span key={tag} style={{
-                    fontFamily: "var(--font-mono)", fontSize: 9,
-                    color: "var(--text-muted)", background: "var(--bg-alt)",
-                    border: "1px solid var(--border)", borderRadius: 4, padding: "2px 7px",
-                  }}>
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              <div style={{ paddingTop: 14, borderTop: "1px solid var(--border)" }}>
-                <p style={{ color: "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-mono)", margin: 0 }}>
-                  Hero analysis: <span style={{ color: "var(--accent-text)" }}>{s.hero}</span>
-                </p>
+              <div style={{ color: "var(--accent-text)", fontSize: 12 }}>
+                {t("samples.openInApp")}
               </div>
             </div>
-          ))}
-        </div>
+
+            <h3 style={{ margin: "0 0 6px 0" }}>{s.title}</h3>
+
+            <p style={{ margin: 0, color: "var(--text-muted)", whiteSpace: "pre-line" }}>
+              {s.desc}
+            </p>
+
+            {/* Tags */}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+              {s.tags.map((tag) => (
+                <span
+                  key={tag}
+                  style={{
+                    fontSize: 11,
+                    padding: "4px 8px",
+                    borderRadius: 999,
+                    border: "1px solid var(--border)",
+                    color: "var(--text-muted)",
+                    fontFamily: "var(--font-mono)",
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+
+            <div style={{ marginTop: 12, fontSize: 12, color: "var(--text-muted)" }}>
+              {t("samples.heroLabel")} {s.hero}
+            </div>
+          </div>
+        ))}
       </div>
 
-      <footer style={{ borderTop: "1px solid var(--border)" }}>
-        <div style={{
-          maxWidth: 1400, margin: "0 auto", padding: "0 32px",
-          height: 44, display: "flex", alignItems: "center", justifyContent: "space-between",
-        }}>
-          <span style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-mono)" }}>LabRat — statistical analysis for researchers</span>
-          <span style={{ color: "var(--text-muted)", fontSize: 11, fontFamily: "var(--font-mono)" }}>FastAPI · React · Redis</span>
-        </div>
-      </footer>
-    </>
+      <div style={{ marginTop: 26, color: "var(--text-muted)", fontSize: 12 }}>
+        LabRat — statistical analysis for researchers FastAPI · React · Redis
+      </div>
+    </div>
   )
 }
