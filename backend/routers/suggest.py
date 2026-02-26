@@ -4,7 +4,7 @@ Suggest router — receives column metadata and returns recommended statistical 
 
 from fastapi import APIRouter
 from typing import List
-from backend.services.suggest_service import ColumnInfo, Suggestion, suggest_tests
+from backend.services.suggest import ColumnInfo, Suggestion, suggest_tests
 
 router = APIRouter()
 
