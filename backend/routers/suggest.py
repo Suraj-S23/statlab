@@ -1,18 +1,20 @@
-"""
-Suggest router — receives column metadata and returns recommended statistical tests.
-"""
-
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from typing import List
-from backend.services.suggest import ColumnInfo, Suggestion, suggest_tests
+from pydantic import BaseModel
+from services.suggest import ColumnInfo, Suggestion, suggest_tests
+from utils.session import get_session
 
 router = APIRouter()
 
 
+class SuggestRequest(BaseModel):
+    session_id: str
+    columns: List[ColumnInfo]
+
+
 @router.post("/suggest", response_model=List[Suggestion])
-def get_suggestions(columns: List[ColumnInfo]):
-    """
-    Given a list of columns (name, type, missing), return a ranked list
-    of suggested statistical tests appropriate for the data structure.
-    """
-    return suggest_tests(columns)
+def get_suggestions(body: SuggestRequest):
+    data = get_session(body.session_id)
+    if data is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return suggest_tests(body.columns, data)
