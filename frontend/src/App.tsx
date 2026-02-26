@@ -27,7 +27,7 @@ import RegressionResults from "./components/RegressionResults"
 import ChiSquareResults from "./components/ChiSquareResults"
 import DoseResponseResults from "./components/DoseResponseResults"
 import KaplanMeierResults from "./components/KaplanMeierResults"
-import SampleDatasets from "./components/SampleDatasets"
+import SampleDatasets, { type SampleConfig } from "./components/SampleDatasets"
 import {
   runDescriptive, runTwoGroup, runAnova, runCorrelation,
   runRegression, runChiSquare, runDoseResponse, runKaplanMeier,
@@ -305,6 +305,8 @@ export default function App() {
   const [results, setResults] = useState<AnyResults | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [sampleContext, setSampleContext] = useState<string | null>(null)
+
 
   async function runAnalysis<T>(fn: () => Promise<T>, type: AnyResults["type"]) {
     setLoading(true)
@@ -319,21 +321,53 @@ export default function App() {
     }
   }
 
-  const handleReset = () => { setData(null); setSelectedTest(null); setResults(null); setError("") }
+  const handleReset = () => { setData(null); setSelectedTest(null); setResults(null); setError(""); setSampleContext(null) }
+  const handleSampleUpload = async (uploadData: UploadResponse, config: SampleConfig) => {
+    setData(uploadData)
+    setSampleContext(config.context)
+    setSelectedTest(null)
+    setResults(null)
+    setError("")
+    setLoading(true)
+    try {
+      let result: AnyResults | null = null
+      const sid = uploadData.session_id
+      if (config.test === "Independent t-test / Mann-Whitney U" && config.group_col && config.value_col)
+        result = { type: "two-group", data: await runTwoGroup(sid, config.group_col, config.value_col) }
+      else if (config.test === "One-Way ANOVA" && config.group_col && config.value_col)
+        result = { type: "anova", data: await runAnova(sid, config.group_col, config.value_col) }
+      else if (config.test === "Dose-Response / IC50 Curve" && config.col_a && config.col_b)
+        result = { type: "dose-response", data: await runDoseResponse(sid, config.col_a, config.col_b) }
+      else if (config.test === "Kaplan-Meier Survival Analysis" && config.time_col && config.event_col)
+        result = { type: "kaplan-meier", data: await runKaplanMeier(sid, config.time_col, config.event_col, config.group_col_optional) }
+      else if (config.test === "Correlation (Pearson / Spearman)" && config.col_a && config.col_b)
+        result = { type: "correlation", data: await runCorrelation(sid, config.col_a, config.col_b) }
+      if (result) setResults(result)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Analysis failed")
+    } finally {
+      setLoading(false)
+    }
+  }
   const handleBackToSuggestions = () => { setSelectedTest(null); setResults(null); setError("") }
 
   const renderResults = () => {
     if (!results) return null
     const props = { onBack: handleBackToSuggestions }
+    const banner = sampleContext ? (
+      <div style={{ padding: "10px 14px", borderRadius: 10, background: "var(--accent-dim)", border: "1px solid var(--accent)", marginBottom: 14, fontSize: 12, color: "var(--text)" }}>
+        📋 {sampleContext}
+      </div>
+    ) : null
     switch (results.type) {
-      case "descriptive":   return <DescriptiveResults results={results.data} {...props} />
-      case "two-group":     return <TwoGroupResults results={results.data} {...props} />
-      case "anova":         return <AnovaResults results={results.data} {...props} />
-      case "correlation":   return <CorrelationResults results={results.data} {...props} />
-      case "regression":    return <RegressionResults results={results.data} {...props} />
-      case "chi-square":    return <ChiSquareResults results={results.data} {...props} />
-      case "dose-response": return <DoseResponseResults results={results.data} {...props} />
-      case "kaplan-meier":  return <KaplanMeierResults results={results.data} {...props} />
+      case "descriptive":   return <>{banner}<DescriptiveResults results={results.data} {...props} /></>
+      case "two-group":     return <>{banner}<TwoGroupResults results={results.data} {...props} /></>
+      case "anova":         return <>{banner}<AnovaResults results={results.data} {...props} /></>
+      case "correlation":   return <>{banner}<CorrelationResults results={results.data} {...props} /></>
+      case "regression":    return <>{banner}<RegressionResults results={results.data} {...props} /></>
+      case "chi-square":    return <>{banner}<ChiSquareResults results={results.data} {...props} /></>
+      case "dose-response": return <>{banner}<DoseResponseResults results={results.data} {...props} /></>
+      case "kaplan-meier":  return <>{banner}<KaplanMeierResults results={results.data} {...props} /></>
     }
   }
 
@@ -508,7 +542,7 @@ export default function App() {
             <div style={{ maxWidth: 1400, margin: "0 auto", padding: "48px 32px 80px", display: "grid", gridTemplateColumns: "480px 1fr", gap: 48, alignItems: "start" }}>
               <div>
                 <UploadZone onUpload={setData} />
-                <SampleDatasets onUpload={setData} />
+                <SampleDatasets onSampleUpload={handleSampleUpload} />
               </div>
               <div style={{ paddingTop: 8 }}>
                 <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.15em", textTransform: "uppercase" as const, marginBottom: 14 }}>

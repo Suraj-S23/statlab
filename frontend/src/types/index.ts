@@ -23,6 +23,8 @@ export interface Suggestion {
   reason: string
   columns_needed: string
   tier: number
+  warning?: string
+  disabled?: boolean 
 }
 
 /** A single histogram bin for chart display. */

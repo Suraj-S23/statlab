@@ -40,8 +40,8 @@ export async function uploadCSV(file: File): Promise<UploadResponse> {
   return response.json()
 }
 
-export async function getSuggestions(columns: Column[]): Promise<Suggestion[]> {
-  return post("/suggest", columns)
+export async function getSuggestions(session_id: string, columns: Column[]): Promise<Suggestion[]> {
+  return post("/suggest", { session_id, columns })
 }
 
 export async function runDescriptive(session_id: string, columns: string[]): Promise<DescriptiveResults> {
