@@ -353,7 +353,8 @@ export default function App() {
 
   const renderResults = () => {
     if (!results) return null
-    const props = { onBack: handleBackToSuggestions }
+    const onBack = sampleContext ? handleReset : handleBackToSuggestions  
+    const props = { onBack }
     const banner = sampleContext ? (
       <div style={{ padding: "10px 14px", borderRadius: 10, background: "var(--accent-dim)", border: "1px solid var(--accent)", marginBottom: 14, fontSize: 12, color: "var(--text)" }}>
         📋 {sampleContext}
