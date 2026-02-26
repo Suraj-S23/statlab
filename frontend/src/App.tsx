@@ -450,7 +450,7 @@ export default function App() {
       <nav style={{ ...s.nav, position: "fixed", top: 0, left: 0, right: 0, zIndex: 50 }}>
         <div style={s.navInner}>
           <button style={s.logo} onClick={handleReset}>
-            <img src="/labrat-logo-final.png" alt="LabRat" style={{ height: 32, width: "auto" }} />
+            <img src="/labrat-logo-final.svg" alt="LabRat" style={{ height: 32, width: "auto" }} />
             <span style={{ fontFamily: "var(--font-sans)", fontSize: 17, fontWeight: 700, letterSpacing: "-0.3px", color: "var(--text)", lineHeight: 1 }}>
               Lab<span style={{ color: "var(--accent-text)" }}>Rat</span>
             </span>
