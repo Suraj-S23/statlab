@@ -3,7 +3,7 @@
  * Adds: robust stage machine + demo mode from /app?sample=...&mode=demo
  */
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTranslation } from "react-i18next"
@@ -78,7 +78,7 @@ export default function AppPage() {
   const [results, setResults] = useState<AnyResults | null>(null)
 
   // Persist user selections so back/forward does not “lose” a previously valid config
-  const [lastSelection, setLastSelection] = useState<Record<string, unknown>>({})
+  // const [lastSelection, setLastSelection] = useState<Record<string, unknown>>({})
 
   // Demo mode state
   const [demoConfig, setDemoConfig] = useState<SampleConfig | null>(null)
@@ -94,19 +94,24 @@ export default function AppPage() {
     return SAMPLES.find(s => s.id === sampleId) ?? null
   }, [sampleId])
 
-  async function runAnalysis<T>(fn: () => Promise<T>, type: AnyResults["type"]) {
-    setLoading(true)
-    setError("")
-    try {
-      const result = await fn()
-      setResults({ type, data: result } as AnyResults)
-      setStage("results")
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : t("common.analysisFailed", "Analysis failed"))
-    } finally {
-      setLoading(false)
-    }
-  }
+  type AnalysisType = AnyResults["type"]
+
+  const runAnalysis = useCallback(
+    async <T,>(fn: () => Promise<T>, type: AnalysisType) => {
+      setLoading(true)
+      setError("")
+      try {
+        const result = await fn()
+        setResults({ type, data: result } as AnyResults) // data is typed by AnyResults
+        setStage("results")
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "Analysis failed")
+      } finally {
+        setLoading(false)
+      }
+    },
+    []
+  )
 
   const handleResetAll = () => {
     setData(null)
@@ -116,7 +121,7 @@ export default function AppPage() {
     setStage("upload")
     setDemoConfig(null)
     setDemoLocked(true)
-    setLastSelection({})
+    // setLastSelection({})
     params.delete("sample")
     params.delete("mode")
     setParams(params, { replace: true })
@@ -151,6 +156,7 @@ export default function AppPage() {
   // If user came from /samples Open demo → auto-load that sample
   useEffect(() => {
     if (!isDemo || !activeSample) return
+    const sample = activeSample // now knows "sample" is non-null
     // Load sample by fetching /samples/<filename> exactly like SampleDatasets does
     let cancelled = false
 
@@ -158,17 +164,17 @@ export default function AppPage() {
       setLoading(true)
       setError("")
       try {
-        const res = await fetch(`/samples/${activeSample.filename}`)
+        const res = await fetch(`/samples/${sample.filename}`)
         if (!res.ok) throw new Error("Could not load sample file")
         const blob = await res.blob()
-        const file = new File([blob], activeSample.filename, { type: "text/csv" })
+        const file = new File([blob], sample.filename, { type: "text/csv" })
 
         // reuse your existing uploadCSV in api layer by dynamic import to avoid circular deps
         const api = await import("../services/api")
         const uploaded = await api.uploadCSV(file)
 
         if (cancelled) return
-        handleSampleUpload(uploaded, activeSample.config)
+        handleSampleUpload(uploaded, sample.config)
       } catch (e: unknown) {
         if (cancelled) return
         setError(e instanceof Error ? e.message : "Failed to load sample")
@@ -190,26 +196,28 @@ export default function AppPage() {
     if (results) return // already ran
     if (stage !== "configure") return
 
-    async function autoRun() {
-      const sid = data.session_id
-      const test = demoConfig.test
+    const sid = data.session_id
+    const cfg = demoConfig
+    const test = cfg.test
 
-      if (test === "Independent t-test / Mann-Whitney U" && demoConfig.group_col && demoConfig.value_col) {
-        await runAnalysis(() => runTwoGroup(sid, demoConfig.group_col!, demoConfig.value_col!), "two-group")
-      } else if (test === "One-Way ANOVA" && demoConfig.group_col && demoConfig.value_col) {
-        await runAnalysis(() => runAnova(sid, demoConfig.group_col!, demoConfig.value_col!), "anova")
-      } else if (test === "Dose-Response / IC50 Curve" && demoConfig.col_a && demoConfig.col_b) {
-        await runAnalysis(() => runDoseResponse(sid, demoConfig.col_a!, demoConfig.col_b!), "dose-response")
-      } else if (test === "Kaplan-Meier Survival Analysis" && demoConfig.time_col && demoConfig.event_col) {
+    async function autoRun() {
+
+      if (test === "Independent t-test / Mann-Whitney U" && cfg.group_col && cfg.value_col) {
+        await runAnalysis(() => runTwoGroup(sid, cfg.group_col!, cfg.value_col!), "two-group")
+      } else if (test === "One-Way ANOVA" && cfg.group_col && cfg.value_col) {
+        await runAnalysis(() => runAnova(sid, cfg.group_col!, cfg.value_col!), "anova")
+      } else if (test === "Dose-Response / IC50 Curve" && cfg.col_a && cfg.col_b) {
+        await runAnalysis(() => runDoseResponse(sid, cfg.col_a!, cfg.col_b!), "dose-response")
+      } else if (test === "Kaplan-Meier Survival Analysis" && cfg.time_col && cfg.event_col) {
         await runAnalysis(
-          () => runKaplanMeier(sid, demoConfig.time_col!, demoConfig.event_col!, demoConfig.group_col_optional ?? null),
+          () => runKaplanMeier(sid, cfg.time_col!, cfg.event_col!, cfg.group_col_optional ?? undefined),
           "kaplan-meier"
         )
       }
     }
 
     autoRun()
-  }, [isDemo, data, demoConfig, stage, results])
+  }, [isDemo, data, demoConfig, stage, results, runAnalysis])
 
   const renderResults = () => {
     if (!results) return null
@@ -305,7 +313,7 @@ export default function AppPage() {
               filterType="numeric"
               minSelect={1}
               onConfirm={(cols) => {
-                setLastSelection({ descriptiveCols: cols })
+                // setLastSelection({ descriptiveCols: cols })
                 runAnalysis(() => runDescriptive(data.session_id, cols), "descriptive")
               }}
               onBack={() => setStage(isDemo ? "configure" : "suggest")}
@@ -320,7 +328,7 @@ export default function AppPage() {
             <TwoGroupSelector
               columns={data.columns}
               onConfirm={(g, v) => {
-                setLastSelection({ groupCol: g, valueCol: v })
+                // setLastSelection({ groupCol: g, valueCol: v })
                 runAnalysis(() => runTwoGroup(data.session_id, g, v), "two-group")
               }}
               onBack={() => setStage(isDemo ? "configure" : "suggest")}
@@ -335,7 +343,7 @@ export default function AppPage() {
             <TwoGroupSelector
               columns={data.columns}
               onConfirm={(g, v) => {
-                setLastSelection({ groupCol: g, valueCol: v })
+                // setLastSelection({ groupCol: g, valueCol: v })
                 runAnalysis(() => runAnova(data.session_id, g, v), "anova")
               }}
               onBack={() => setStage(isDemo ? "configure" : "suggest")}
@@ -352,7 +360,7 @@ export default function AppPage() {
               labelA="First column"
               labelB="Second column"
               onConfirm={(a, b) => {
-                setLastSelection({ colA: a, colB: b })
+                // setLastSelection({ colA: a, colB: b })
                 runAnalysis(() => runCorrelation(data.session_id, a, b), "correlation")
               }}
               onBack={() => setStage(isDemo ? "configure" : "suggest")}
@@ -369,7 +377,7 @@ export default function AppPage() {
               labelA="Predictor column (X)"
               labelB="Outcome column (Y)"
               onConfirm={(a, b) => {
-                setLastSelection({ colA: a, colB: b })
+                // setLastSelection({ colA: a, colB: b })
                 runAnalysis(() => runRegression(data.session_id, a, b), "regression")
               }}
               onBack={() => setStage(isDemo ? "configure" : "suggest")}
@@ -387,7 +395,7 @@ export default function AppPage() {
               minSelect={2}
               maxSelect={2}
               onConfirm={(cols) => {
-                setLastSelection({ colA: cols[0], colB: cols[1] })
+                // setLastSelection({ colA: cols[0], colB: cols[1] })
                 runAnalysis(() => runChiSquare(data.session_id, cols[0], cols[1]), "chi-square")
               }}
               onBack={() => setStage(isDemo ? "configure" : "suggest")}
@@ -404,7 +412,7 @@ export default function AppPage() {
               labelA="Concentration column"
               labelB="Response column"
               onConfirm={(a, b) => {
-                setLastSelection({ colA: a, colB: b })
+                // setLastSelection({ colA: a, colB: b })
                 runAnalysis(() => runDoseResponse(data.session_id, a, b), "dose-response")
               }}
               onBack={() => setStage(isDemo ? "configure" : "suggest")}
@@ -419,7 +427,7 @@ export default function AppPage() {
             <KaplanMeierSelector
               columns={data.columns}
               onConfirm={(timeCol, eventCol, groupCol) => {
-                setLastSelection({ timeCol, eventCol, groupCol })
+                // setLastSelection({ timeCol, eventCol, groupCol })
                 runAnalysis(() => runKaplanMeier(data.session_id, timeCol, eventCol, groupCol), "kaplan-meier")
               }}
               onBack={() => setStage(isDemo ? "configure" : "suggest")}
