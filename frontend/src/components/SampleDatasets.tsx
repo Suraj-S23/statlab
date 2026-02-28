@@ -4,7 +4,7 @@
  * card skips the suggestion panel and goes straight to results.
  */
 
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { motion } from "framer-motion"
 import { uploadCSV } from "../services/api"
 import type { UploadResponse } from "../types"
@@ -28,7 +28,7 @@ interface SampleMeta {
   title: string
   description: string
   tags: string[]
-  icon: string
+  icon: ReactNode
   highlight: string
   config: SampleConfig
 }
@@ -40,7 +40,7 @@ const SAMPLES: SampleMeta[] = [
     title: "Clinical Trial",
     description: "Blood-pressure drug vs placebo in 80 patients.",
     tags: ["t-test", "Chi-square", "Descriptive"],
-    icon: "💊",
+    icon: <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M10.5 20H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H20a2 2 0 0 1 2 2v3"/><circle cx="18" cy="18" r="3"/><path d="m22 22-1.5-1.5"/></svg>,
     highlight: "rgba(45,212,191,0.12)",
     config: {
       test: "Independent t-test / Mann-Whitney U",
@@ -55,7 +55,7 @@ const SAMPLES: SampleMeta[] = [
     title: "Dose-Response / IC50",
     description: "Cell viability across 11 concentrations with 4 replicates each.",
     tags: ["Dose-Response", "IC50"],
-    icon: "🧪",
+    icon: <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5V2"/><path d="M8.5 2h7"/><path d="M14.5 16h-5"/></svg>,
     highlight: "rgba(99,102,241,0.12)",
     config: {
       test: "Dose-Response / IC50 Curve",
@@ -70,7 +70,7 @@ const SAMPLES: SampleMeta[] = [
     title: "Cancer Survival Study",
     description: "Immunotherapy vs chemotherapy outcomes in 90 patients.",
     tags: ["Kaplan-Meier", "Log-rank"],
-    icon: "📈",
+    icon: <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>,
     highlight: "rgba(251,146,60,0.12)",
     config: {
       test: "Kaplan-Meier Survival Analysis",
@@ -86,7 +86,7 @@ const SAMPLES: SampleMeta[] = [
     title: "Diet Intervention",
     description: "Cholesterol & weight changes across 4 diet groups, 100 participants.",
     tags: ["ANOVA", "Correlation"],
-    icon: "🥗",
+    icon: <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 4.9-7 13-7 13S5 13.9 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>,
     highlight: "rgba(52,211,153,0.12)",
     config: {
       test: "One-Way ANOVA",

@@ -183,8 +183,16 @@ function SuggestionCard({
           background: isDisabled ? "rgba(148,163,184,0.08)" : "rgba(245,158,11,0.1)",
           border: `1px solid ${isDisabled ? "rgba(148,163,184,0.15)" : "rgba(245,158,11,0.25)"}`,
         }}>
-          <span style={{ fontSize: 10, flexShrink: 0, marginTop: 1 }}>
-            {isDisabled ? "🚫" : "⚠️"}
+          <span style={{ flexShrink: 0, marginTop: 1, color: isDisabled ? "var(--text-muted)" : "#f59e0b", display: "flex" }}>
+            {isDisabled ? (
+              <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+              </svg>
+            ) : (
+              <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            )}
           </span>
           <p style={{
             color: isDisabled ? "var(--text-muted)" : "#f59e0b",

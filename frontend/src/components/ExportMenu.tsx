@@ -35,14 +35,17 @@ export default function ExportMenu({ filename, pdfTitle, pdfSubtitle, csvData, h
     }
   }
 
+  const PngIcon = () => <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+  const PdfIcon = () => <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+  const CsvIcon = () => <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="8" y1="9" x2="10" y2="9"/></svg>
+
   const options = [
     ...(hasChart ? [
-      { type: "png" as const,  label: "📷  Chart PNG" },
-      { type: "pdf" as const,  label: "📄  Publication PDF" },
+      { type: "png" as const, icon: <PngIcon />, label: "Chart PNG" },
+      { type: "pdf" as const, icon: <PdfIcon />, label: "Publication PDF" },
     ] : []),
-    { type: "csv" as const, label: "📊  CSV data" },
+    { type: "csv" as const, icon: <CsvIcon />, label: "CSV data" },
   ]
-
   return (
     <div ref={ref} style={{ position: "relative" }}>
       <button
@@ -65,7 +68,7 @@ export default function ExportMenu({ filename, pdfTitle, pdfSubtitle, csvData, h
           border: "1px solid var(--border)", borderRadius: 12,
           boxShadow: "0 8px 24px rgba(0,0,0,0.4)", zIndex: 50, overflow: "hidden",
         }}>
-          {options.map(({ type, label }, i) => (
+          {options.map(({ type, icon, label }, i) => (
             <button key={type} onClick={() => handle(type)} style={{
               width: "100%", textAlign: "left", padding: "10px 14px",
               fontSize: 12, color: "var(--text)", background: "none",
@@ -76,7 +79,10 @@ export default function ExportMenu({ filename, pdfTitle, pdfSubtitle, csvData, h
               onMouseEnter={e => (e.currentTarget.style.background = "var(--bg-alt)")}
               onMouseLeave={e => (e.currentTarget.style.background = "none")}
             >
-              {label}
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {icon}
+                {label}
+              </span>
             </button>
           ))}
         </div>

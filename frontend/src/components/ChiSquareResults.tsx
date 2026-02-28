@@ -21,7 +21,12 @@ export default function ChiSquareResults({ results, onBack }: Props) {
       </div>
       {results.assumption_warning && (
         <div style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid #92400e", background: "#451a03", marginBottom: 12 }}>
-          <p style={{ color: "#f59e0b", fontSize: 12, margin: 0 }}>⚠ {results.assumption_warning}</p>
+          <p style={{ color: "#f59e0b", fontSize: 12, margin: 0, display: "flex", alignItems: "center", gap: 6 }}>
+            <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            {results.assumption_warning}
+          </p>
         </div>
       )}
       <div style={{ padding: "12px 16px", borderRadius: 12, border: `1px solid ${results.chi_square.significant ? "var(--accent)" : "var(--border)"}`, background: results.chi_square.significant ? "var(--accent-dim)" : "var(--surface)", marginBottom: 16 }}>

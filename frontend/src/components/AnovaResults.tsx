@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import type { AnovaResults as Results } from "../types"
-import GroupBarChart from "./charts/GroupBarChart"
+import BoxPlotChart from "./charts/BoxPlotChart"
 
 interface Props { results: Results; onBack: () => void }
 
@@ -13,7 +13,18 @@ export default function AnovaResults({ results, onBack }: Props) {
   const { t } = useTranslation()
   const groupNames = Object.keys(results.groups)
   const significant = results.anova.significant || results.kruskal_wallis.significant
-  const chartGroups = groupNames.map(name => ({ name, mean: results.groups[name].mean, std: results.groups[name].std, n: results.groups[name].n }))
+  const chartGroups = groupNames.map(name => ({
+    name,
+    mean:         results.groups[name].mean,
+    median:       results.groups[name].median,
+    std:          results.groups[name].std,
+    q1:           results.groups[name].q1,
+    q3:           results.groups[name].q3,
+    whisker_low:  results.groups[name].whisker_low,
+    whisker_high: results.groups[name].whisker_high,
+    points:       results.groups[name].points,
+    n:            results.groups[name].n,
+  }))
 
   return (
     <div style={{ marginTop: 16 }}>
@@ -27,7 +38,7 @@ export default function AnovaResults({ results, onBack }: Props) {
       <div style={{ padding: "12px 16px", borderRadius: 12, border: `1px solid ${significant ? "var(--accent)" : "var(--border)"}`, background: significant ? "var(--accent-dim)" : "var(--surface)", marginBottom: 16 }}>
         <p style={{ color: "var(--text)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>{results.interpretation}</p>
       </div>
-      <div id="chart-export-zone"><GroupBarChart groups={chartGroups} valueLabel={results.value_column} /></div>
+      <div id="chart-export-zone"><BoxPlotChart groups={chartGroups} valueLabel={results.value_column} /></div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 8, marginBottom: 16, marginTop: 16 }}>
         {groupNames.map(group => {
           const g = results.groups[group]

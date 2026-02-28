@@ -62,6 +62,10 @@ export interface GroupSummary {
   mean: number
   median: number
   std: number
+  q1: number
+  q3: number
+  whisker_low: number
+  whisker_high: number
   normality_p: number | null
   normality: string
   points: number[]
@@ -82,6 +86,10 @@ export interface AnovaGroupSummary {
   mean: number
   median: number
   std: number
+  q1: number
+  q3: number
+  whisker_low: number
+  whisker_high: number
   points: number[]
 }
 

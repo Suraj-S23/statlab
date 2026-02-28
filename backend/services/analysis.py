@@ -167,6 +167,28 @@ def two_group_comparison(data: list[dict], group_col: str, value_col: str) -> di
                 "mean": round(float(group_a.mean()), 4),
                 "median": round(float(group_a.median()), 4),
                 "std": round(float(group_a.std()), 4),
+                "q1": round(float(group_a.quantile(0.25)), 4),
+                "q3": round(float(group_a.quantile(0.75)), 4),
+                "whisker_low": round(
+                    float(
+                        max(
+                            group_a.min(),
+                            group_a.quantile(0.25)
+                            - 1.5 * (group_a.quantile(0.75) - group_a.quantile(0.25)),
+                        )
+                    ),
+                    4,
+                ),
+                "whisker_high": round(
+                    float(
+                        min(
+                            group_a.max(),
+                            group_a.quantile(0.75)
+                            + 1.5 * (group_a.quantile(0.75) - group_a.quantile(0.25)),
+                        )
+                    ),
+                    4,
+                ),
                 "normality_p": norm_a_p,
                 "normality": norm_a_result,
                 "points": [
@@ -174,13 +196,35 @@ def two_group_comparison(data: list[dict], group_col: str, value_col: str) -> di
                     for v in group_a.sample(
                         min(200, len(group_a)), random_state=42
                     ).values
-                ],  # ← add
+                ],
             },
             group_b_label: {
                 "n": int(len(group_b)),
                 "mean": round(float(group_b.mean()), 4),
                 "median": round(float(group_b.median()), 4),
                 "std": round(float(group_b.std()), 4),
+                "q1": round(float(group_b.quantile(0.25)), 4),
+                "q3": round(float(group_b.quantile(0.75)), 4),
+                "whisker_low": round(
+                    float(
+                        max(
+                            group_b.min(),
+                            group_b.quantile(0.25)
+                            - 1.5 * (group_b.quantile(0.75) - group_b.quantile(0.25)),
+                        )
+                    ),
+                    4,
+                ),
+                "whisker_high": round(
+                    float(
+                        min(
+                            group_b.max(),
+                            group_b.quantile(0.75)
+                            + 1.5 * (group_b.quantile(0.75) - group_b.quantile(0.25)),
+                        )
+                    ),
+                    4,
+                ),
                 "normality_p": norm_b_p,
                 "normality": norm_b_result,
                 "points": [
@@ -188,7 +232,7 @@ def two_group_comparison(data: list[dict], group_col: str, value_col: str) -> di
                     for v in group_b.sample(
                         min(200, len(group_b)), random_state=42
                     ).values
-                ],  # ← add
+                ],
             },
         },
         "t_test": {
@@ -264,15 +308,22 @@ def one_way_anova(data: list[dict], group_col: str, value_col: str) -> dict:
     # Per-group summary statistics
     group_summaries = {}
     for name, series in group_data.items():
+        _q1 = float(series.quantile(0.25))
+        _q3 = float(series.quantile(0.75))
+        _iqr = _q3 - _q1
         group_summaries[name] = {
             "n": int(len(series)),
             "mean": round(float(series.mean()), 4),
             "median": round(float(series.median()), 4),
             "std": round(float(series.std()), 4),
+            "q1": round(_q1, 4),
+            "q3": round(_q3, 4),
+            "whisker_low": round(float(max(series.min(), _q1 - 1.5 * _iqr)), 4),
+            "whisker_high": round(float(min(series.max(), _q3 + 1.5 * _iqr)), 4),
             "points": [
                 round(float(v), 4)
                 for v in series.sample(min(200, len(series)), random_state=42).values
-            ],  # ← add
+            ],
         }
 
     # Plain-English interpretation

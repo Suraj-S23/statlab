@@ -29,16 +29,20 @@ export default function HomePage() {
         {/* Top fade — nav readability */}
         <div style={{
           position: "absolute", top: 0, left: 0, right: 0, height: 160,
-          background: "linear-gradient(to bottom, rgba(3,7,18,0.75), transparent)",
+          background: isDark
+            ? "linear-gradient(to bottom, rgba(3,7,18,0.75), transparent)"
+            : "linear-gradient(to bottom, rgba(241,245,249,0.82), transparent)",
           pointerEvents: "none", zIndex: 1,
         }} />
 
         {/* Focused gradient only behind the text block — rest of plot stays fully visible */}
         <div style={{
           position: "absolute", inset: 0,
-          background: "radial-gradient(ellipse 55% 70% at 13% 82%, rgba(3,7,18,0.90) 0%, rgba(3,7,18,0.50) 45%, transparent 72%)",
-          pointerEvents: "none", zIndex: 1,
-        }} />
+          background: isDark
+            ? "radial-gradient(ellipse 55% 70% at 13% 82%, rgba(3,7,18,0.90) 0%, rgba(3,7,18,0.50) 45%, transparent 72%)"
+            : "radial-gradient(ellipse 60% 75% at 13% 82%, rgba(241,245,249,0.97) 0%, rgba(241,245,249,0.72) 48%, transparent 72%)",
+                    pointerEvents: "none", zIndex: 1,
+                  }} />
 
         {/* Plot label — top right */}
         <div style={{
@@ -56,7 +60,7 @@ export default function HomePage() {
           }}>
             {t("landing.plotType")}
           </span>
-          <span style={{ color: "rgba(148,163,184,0.85)", fontSize: 10, fontFamily: "var(--font-mono)" }}>
+          <span style={{ color: isDark ? "rgba(148,163,184,0.85)" : "var(--text-muted)", fontSize: 10, fontFamily: "var(--font-mono)" }}>
             {t("landing.plotLabel")} · {t("landing.dragHint")}
           </span>
         </div>
@@ -70,7 +74,7 @@ export default function HomePage() {
             <div style={{ maxWidth: 520, pointerEvents: "all" }}>
               <div style={{
                 display: "inline-flex", alignItems: "center", gap: 6,
-                background: "rgba(3,7,18,0.55)", border: "1px solid rgba(45,212,191,0.45)",
+                background: isDark ? "rgba(3,7,18,0.55)" : "rgba(255,255,255,0.75)", border: "1px solid rgba(45,212,191,0.45)",
                 backdropFilter: "blur(8px)", borderRadius: 20, padding: "4px 14px", marginBottom: 18,
               }}>
                 <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--accent)", display: "inline-block", flexShrink: 0 }} />
@@ -80,7 +84,7 @@ export default function HomePage() {
               </div>
 
               <h1 style={{
-                color: "#f1f5f9", fontFamily: "var(--font-sans)",
+                color: isDark ? "#f1f5f9" : "var(--text)", fontFamily: "var(--font-sans)",
                 fontSize: "clamp(32px, 3.6vw, 52px)", fontWeight: 700,
                 lineHeight: 1.1, margin: "0 0 14px", letterSpacing: "-0.03em",
                 textShadow: "0 2px 32px rgba(3,7,18,0.7)",
@@ -90,8 +94,8 @@ export default function HomePage() {
               </h1>
 
               <p style={{
-                color: "rgba(226,232,240,0.90)", fontSize: 14, lineHeight: 1.65, maxWidth: 420,
-                textShadow: "0 1px 14px rgba(3,7,18,1), 0 0 40px rgba(3,7,18,0.9)",
+                color: isDark ? "rgba(226,232,240,0.90)" : "var(--text-muted)", fontSize: 14, lineHeight: 1.65, maxWidth: 420,
+                textShadow: isDark ? "0 1px 14px rgba(3,7,18,1), 0 0 40px rgba(3,7,18,0.9)" : "none",
                 marginBottom: 22,
               }}>
                 {t("landing.subtitle")}
@@ -113,8 +117,8 @@ export default function HomePage() {
                   onClick={() => navigate("/samples")}
                   style={{
                     padding: "10px 22px", borderRadius: 9,
-                    background: "rgba(45,212,191,0.08)", color: "var(--accent-text)",
-                    border: "1px solid rgba(45,212,191,0.25)",
+                    background: isDark ? "rgba(45,212,191,0.08)" : "rgba(3,105,161,0.08)", color: "var(--accent-text)",
+                    border: isDark ? "1px solid rgba(45,212,191,0.25)" : "1px solid rgba(3,105,161,0.4)",
                     cursor: "pointer", fontSize: 13, fontFamily: "var(--font-sans)",
                   }}
                 >

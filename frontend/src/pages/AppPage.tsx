@@ -3,6 +3,7 @@
  */
 
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTranslation } from "react-i18next"
 import UploadZone from "../components/UploadZone.tsx"
@@ -20,7 +21,6 @@ import RegressionResults from "../components/RegressionResults.tsx"
 import ChiSquareResults from "../components/ChiSquareResults.tsx"
 import DoseResponseResults from "../components/DoseResponseResults.tsx"
 import KaplanMeierResults from "../components/KaplanMeierResults.tsx"
-import SampleDatasets from "../components/SampleDatasets.tsx"
 import {
   runDescriptive, runTwoGroup, runAnova, runCorrelation,
   runRegression, runChiSquare, runDoseResponse, runKaplanMeier,
@@ -56,6 +56,7 @@ const pageVariants = {
 const NAV_H = 52
 
 export default function AppPage() {
+  const navigate = useNavigate()
   const { t } = useTranslation()
   const [data, setData] = useState<UploadResponse | null>(null)
   const [selectedTest, setSelectedTest] = useState<string | null>(null)
@@ -188,14 +189,28 @@ export default function AppPage() {
           }}>
             <div>
               <UploadZone onUpload={handleUpload} />
-              <SampleDatasets
-                onSampleUpload={(uploadedData, config) => {
-                    setData(uploadedData)
-                    setSelectedTest(config.test)
-                    // Optional: store config.context somewhere to display as a banner above results
-                    // Optional: auto-run analysis here if you want "skip suggestions and go straight to results"
+              <button
+                onClick={() => navigate("/samples")}
+                style={{
+                  marginTop: 20, width: "100%",
+                  padding: "11px 0", borderRadius: 10,
+                  border: "1px dashed var(--border)",
+                  background: "none", cursor: "pointer",
+                  color: "var(--text-muted)", fontSize: 12,
+                  fontFamily: "var(--font-sans)",
+                  transition: "border-color 0.15s, color 0.15s",
                 }}
-                />
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--accent)"
+                  ;(e.currentTarget as HTMLButtonElement).style.color = "var(--accent-text)"
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)"
+                  ;(e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)"
+                }}
+              >
+                Try a sample dataset →
+              </button>
             </div>
 
             <div style={{ paddingTop: 8 }}>
