@@ -70,8 +70,8 @@ export default function SurvivalCurve({ curve, groups }: Props) {
               formatter={(v: number | undefined) => v != null ? [`${(v * 100).toFixed(1)}%`] : [""]}
             />
             <Legend
-              verticalAlign="bottom"
-              wrapperStyle={{ fontSize: 11, color: "#9ca3af", paddingTop: 16 }}
+              verticalAlign="top"
+              wrapperStyle={{ fontSize: 11, color: "#9ca3af", paddingBottom: 8 }}
             />
             {groupNames.map((g, i) => (
               <Line
